@@ -1,0 +1,200 @@
+from model import Comment_Interactions, db, User, Task, Reminder, Reward, Follow, Post, Post_Interactions, Group, User_Group, connect_to_db
+from datetime import datetime
+
+
+## CREATE USER 
+
+def create_user(email, password, username, name, profile_picture, is_private, date_account_created):
+    date_account_created = datetime.now().replace(second=0, microsecond=0)
+    user = User(email=email, password=password, username = username, 
+                name = name, profile_picture = profile_picture, 
+                is_private = is_private, date_account_created = date_account_created)
+
+    db.session.add(user)
+    db.session.commit()
+
+    return user
+
+
+## CREATE TASK 
+
+def create_task(user_id, task, urgency, recurring, active):
+    task = Task(user_id = user_id, task = task, urgency = urgency, 
+                recurring = recurring, active = active)
+
+
+    db.session.add(task)
+    db.session.commit()
+
+    return task
+
+
+# CREATE REWARD SYSTEM FOR TASKS
+
+def create_reward(user_id, reward, tasks_completed):
+    reward = Reward(user_id = user_id, reward = reward, tasks_completed = tasks_completed)
+
+
+    db.session.add(reward)
+    db.session.commit()
+
+    return reward
+
+
+## CREATE REMINDERS
+
+def create_reminder(user_id, reminder):
+    reminder = Reminder(user_id = user_id, reminder = reminder)
+
+
+    db.session.add(reminder)
+    db.session.commit()
+
+    return reminder
+
+
+## CREATE POST
+
+def create_post(user_id, post, post_date_made, is_private, post_title):
+    post_date_made = datetime.now().replace(second=0, microsecond=0)
+    post = Post(user_id = user_id, post_date_made = post_date_made, 
+                is_private = is_private, post_title = post_title)
+
+
+    db.session.add(post)
+    db.session.commit()
+
+    return post
+
+
+## CREATE COMMENT 
+
+def create_comment(user_id, post_id, comment, comment_date_made):
+    comment_date_made = datetime.now().replace(second=0, microsecond=0)
+    comment = Post_Interactions(user_id = user_id, post_id = post_id, comment = comment, 
+                            comment_date_made = comment_date_made)
+
+    db.session.add(comment)
+    db.session.commit()
+
+    return comment
+
+
+## RETURN LIST OF USERS LIKED POSTS
+
+def users_likes(user_id):
+    likes = []
+    likes.extend(Post_Interactions.query.filter(Post_Interactions.user_id == user_id & Post_Interactions.liked == True).all())
+    likes.extend(Comment_Interactions.query.filter(Comment_Interactions.user_id == user_id & Comment_Interactions.liked == True).all())
+    
+    ##want information about post / comment to show up, dictionary and loop through? AND Join query 
+    #likes[0].user_interactions
+    #likes[0].post_interactions
+
+    return likes
+
+
+## CREATE GROUP
+
+def create_group(group_name):
+    group = Group(group_name = group_name)
+
+    db.session.add(group)
+    db.session.commit()
+
+    return group
+
+
+## USER JOIN GROUP
+
+def join_group(user_id, group_id):
+    join_group = User_Group(user_id = user_id, group_id = group_id)
+
+    db.session.add(join_group)
+    db.session.commit()
+
+    return join_group
+
+
+## RETURN USERS IN GROUP
+
+def users_in_group(group_id):
+
+    users_in_group = User_Group.query.filter(User_Group.group_id == group_id).group_by(User_Group.user_id).all()
+
+    ## WANT TO RETURN THERE PROFILE PICS and names- join query
+    return users_in_group
+
+
+## FOLLOW USER
+
+def follow_user(user_id, follow_user_id):
+    follow_user = User(user_id = user_id, follow_user_id = follow_user_id)
+
+    db.session.add(follow_user)
+    db.session.commit()
+
+    return follow_user
+
+
+## FOLLOW ANOTHER USER
+
+def follow_user(user_id, follow_user_id):
+    follow_user = Follow(user_id = user_id, follow_user_id = follow_user_id)
+
+    return follow_user
+
+
+## RETURN LIST OF FOLLOWING
+
+def get_following(user_id):
+    users_following = Follow.query.filter(Follow.user_id == user_id).group_by(Follow.follow_user_id).all()
+   
+    ## RETURN USERS Profile pic, bio, name, username - dictionary? join query
+    return users_following
+
+
+## RETURN LIST OF FOLLOWERS
+
+def get_followers(user_id):
+    followers = Follow.query.filter(Follow.follow_user_id == user_id).group_by(Follow.user_id).all()
+    
+    ## RETURN USERS Profile pic, bio, name, username - dictionary? join query 
+    return followers
+
+
+## RETURN COUNT OF FOLLOWING
+
+def count_following(user_id):
+    count_following = Follow.query.filter(Follow.user_id == user_id).count(Follow.follow_user_id).all()
+
+    return count_following
+
+
+## RETURN COUNT OF FOLLOWERS
+
+def count_followers(user_id):
+    count_followers = Follow.query.filter(Follow.follow_user_id == user_id).count(Follow.user_id).all()
+
+    return count_followers
+
+
+## SEARCH FOR USERS / POSTS / GROUPS
+
+def search_site(search):
+    result = [] 
+    result += User.query.filter(User.name.like(f'%{search}%')).all()
+    result += User.query.filter(User.username.like(f'%{search}%')).all()
+    result += Post.query.filter(Post.post.like(f'%{search}%')).all()
+    result += Post_Interactions.query.filter(Post_Interactions.comment.like(f'%{search}%')).all()
+    result += Comment_Interactions.query.filter(Comment_Interactions.comments_comment.like(f'%{search}%')).all()
+
+    #want to return all information - dictionary? Profile pics, posts, comments, etc
+    return result 
+
+
+
+
+if __name__ == '__main__':
+    from server import app
+    connect_to_db(app)
