@@ -22,12 +22,17 @@ class User(db.Model):
     user_id = db.Column(db.Integer,
                         autoincrement= True,
                         primary_key=True)
-    username = db.Column(db.String(20), unique = True)
-    name = db.Column(db.String(20))
-    password = db.Column(db.String(25))
+    username = db.Column(db.String(50), unique = True, nullable = False)
+    name = db.Column(db.String(50))
+    email = db.Column(db.String, nullable = False)
+    password = db.Column(db.String(50), nullable = False)
     is_private = db.Column(db.Boolean)
     profile_picture = db.Column(db.String)
     date_account_created = db.Column(db.DateTime)
+
+    follows = db.relationship("User", secondary="following", primaryjoin=("User.user_id == Follow.user_id"), secondaryjoin=("User.user_id == Follow.follow_user_id"))
+    groups = db.relationship("Group", secondary="user_group", backref="users")
+
 
     def __repr__(self):
         return f'<User user_id={self.user_id} username={self.username}>'
@@ -42,7 +47,7 @@ class Task(db.Model):
                         autoincrement= True,
                         primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey("users.user_id"))
-    task = db.Column(db.Text)
+    task = db.Column(db.Text, nullable = False)
     urgency = db.Column(db.String)
     reoccurring = db.Column(db.Boolean)
     Active = db.Column(db.Boolean)
@@ -62,7 +67,7 @@ class Reminder(db.Model):
                         autoincrement= True,
                         primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey("users.user_id"))
-    text = db.Column(db.String(140))
+    text = db.Column(db.String(140), nullable = False)
 
     user_remember = db.relationship("User", backref="reminders")
 
@@ -79,8 +84,8 @@ class Reward(db.Model):
                         autoincrement= True,
                         primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey("users.user_id"))
-    reward = db.Column(db.String(140))
-    tasks_completed = db.Column(db.Integer)
+    reward = db.Column(db.String(140), nullable = False)
+    tasks_completed = db.Column(db.Integer, nullable = False)
 
     user_rewards = db.relationship("User", backref="rewards")
 
@@ -97,10 +102,10 @@ class Post(db.Model):
                         autoincrement= True,
                         primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey("users.user_id"))
-    post = db.Column(db.Text)
+    post = db.Column(db.Text, nullable = False)
     post_date_made = db.Column(db.DateTime)
     is_private = db.Column(db.Boolean)
-    post_title = db.Column(db.String(140))
+    post_title = db.Column(db.String(140), nullable = False)
 
     user_posts = db.relationship("User", backref="posts")
 
@@ -108,29 +113,52 @@ class Post(db.Model):
         return f'<Post post_id={self.post_id} post_title={self.post_title}>'
 
 
-class Interactions(db.Model):
+class Post_Interactions(db.Model):
     """A user's post interactions."""
 
     __tablename__ = "post_interactions"
 
-    interaction_id = db.Column(db.Integer,
+    post_interaction_id = db.Column(db.Integer,
                         autoincrement= True,
                         primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey("users.user_id"))
     post_id = db.Column(db.Integer, db.ForeignKey("posts.post_id"))
     comment = db.Column(db.Text)
-    liked = db.Column(db.Boolean)
+    comment_date_made = db.Column(db.DateTime)
+    post_liked = db.Column(db.Boolean)
 
 
-    user_interactions = db.relationship("User", backref="interactions")
-    post_interactions = db.relationship("User", backref="interactions")
+    user_interactions = db.relationship("User", backref="post_interactions")
+    post_interactions = db.relationship("Post", backref="interactions")
 
     def __repr__(self):
-        return f'<Interactions interaction_id={self.interaction_id}>'
+        return f'<Post Interactions post_interaction_id={self.post_interaction_id}>'
 
 
-class Following(db.Model):
-    """A Follow"""
+class Comment_Interactions(db.Model):
+    """A user's comment interactions."""
+
+    __tablename__ = "comment_interactions"
+
+    comment_interaction_id = db.Column(db.Integer,
+                        autoincrement= True,
+                        primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.user_id"))
+    post_interaction_id = db.Column(db.Text, db.ForeignKey("post_interaction.post_interaction_id"))
+    comments_comment = db.Columnt(db.Text)
+    comments_date_made = db.Column(db.DateTime)
+    comment_liked = db.Column(db.Boolean)
+
+
+    user_comment_interactions = db.relationship("User", backref="comment_interactions")
+    comment_interactions = db.relationship("Post", backref="comment_interactions")
+
+    def __repr__(self):
+        return f'<Comment Interactions comment_interaction_id={self.comment_interaction_id}>'
+
+
+class Follow(db.Model):
+    """A Follow - association table to connect two users together"""
 
     __tablename__ = "following"
 
@@ -138,9 +166,7 @@ class Following(db.Model):
                         autoincrement= True,
                         primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey("users.user_id"))
-    following_user_id = db.Column(db.Integer, db.ForeignKey("users.user_id"))
-
-    user_follows = db.relationship("User", backref="follows")
+    follow_user_id = db.Column(db.Integer, db.ForeignKey("users.user_id"))
 
     def __repr__(self):
         return f'<Following following_id={self.following_id}>'
@@ -154,15 +180,25 @@ class Group(db.Model):
     group_id = db.Column(db.Integer,
                         autoincrement= True,
                         primary_key=True)
-    group_name = db.Column(db.String(70))
-    user_id = db.Column(db.Integer, db.ForeignKey("users.user_id"))
-    task_id = db.Column(db.Integer, db.ForeignKey("users.user_id"))
-
-    user_groups = db.relationship("User", backref="groups")
-
+    group_name = db.Column(db.String(70), nullable = False)
+    
     def __repr__(self):
         return f'<Group group_id={self.following_id} group_name={self.group_name}>'
 
+
+class User_Group(db.Model):
+    """Association table for Group and Users"""
+
+    __tablename__ = "user_group"
+
+    user_group_id = db.Column(db.Integer,
+                        autoincrement= True,
+                        primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.user_id"))
+    group_id = db.Column(db.Integer, db.ForeignKey("groups.group_id"))
+
+    def __repr__(self):
+        return f'<User_Group user_group_id={self.user_group_id}>'
 
 
 if __name__ == "__main__":
