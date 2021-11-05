@@ -1,11 +1,11 @@
 from model import Comment_Interactions, db, User, Task, Reminder, Reward, Follow, Post, Post_Interactions, Group, User_Group, connect_to_db
-from datetime import datetime
+
 
 
 ## CREATE USER 
 
-def create_user(email, password, username, name, profile_picture, is_private, date_account_created):
-    date_account_created = datetime.now().replace(second=0, microsecond=0)
+def create_user(email, password, username, date_account_created, name = None, profile_picture = None, is_private = False):
+    #date_created = datetime.now().replace(second=0, microsecond=0)
     user = User(email=email, password=password, username = username, 
                 name = name, profile_picture = profile_picture, 
                 is_private = is_private, date_account_created = date_account_created)
@@ -16,9 +16,23 @@ def create_user(email, password, username, name, profile_picture, is_private, da
     return user
 
 
+## CHECK IF USER WITH THAT EMAIL ALREADY EXISTS
+
+def get_user_by_email(email):
+
+    return User.query.filter_by(email = email).first()
+
+
+## CHECK IF USER WITH THAT USERNAME ALREADY EXISTS
+
+def get_user_by_username(username):
+
+    return User.query.filter_by(username = username).first()
+
+
 ## CREATE TASK 
 
-def create_task(user_id, task, urgency, recurring, active):
+def create_task(user_id, task, urgency, recurring = False, active = True):
     task = Task(user_id = user_id, task = task, urgency = urgency, 
                 recurring = recurring, active = active)
 
@@ -55,12 +69,9 @@ def create_reminder(user_id, reminder):
 
 ## CREATE POST
 
-def create_post(user_id, post, post_date_made, is_private, post_title):
-    post_date_made = datetime.now().replace(second=0, microsecond=0)
-    post = Post(user_id = user_id, post_date_made = post_date_made, 
-                is_private = is_private, post_title = post_title)
-
-
+def create_post(user_id, post, post_date_made, post_title, is_private = False):
+    post = Post(user_id = user_id, post = post, post_date_made = post_date_made, is_private = is_private, post_title = post_title)
+    
     db.session.add(post)
     db.session.commit()
 
@@ -70,7 +81,6 @@ def create_post(user_id, post, post_date_made, is_private, post_title):
 ## CREATE COMMENT 
 
 def create_comment(user_id, post_id, comment, comment_date_made):
-    comment_date_made = datetime.now().replace(second=0, microsecond=0)
     comment = Post_Interactions(user_id = user_id, post_id = post_id, comment = comment, 
                             comment_date_made = comment_date_made)
 
@@ -96,8 +106,8 @@ def users_likes(user_id):
 
 ## CREATE GROUP
 
-def create_group(group_name):
-    group = Group(group_name = group_name)
+def create_group(user_id, group_name):
+    group = Group(user_id = user_id, group_name = group_name)
 
     db.session.add(group)
     db.session.commit()
@@ -177,6 +187,11 @@ def count_followers(user_id):
     count_followers = Follow.query.filter(Follow.follow_user_id == user_id).count(Follow.user_id).all()
 
     return count_followers
+
+
+## UNFOLLOW USER
+
+
 
 
 ## SEARCH FOR USERS / POSTS / GROUPS

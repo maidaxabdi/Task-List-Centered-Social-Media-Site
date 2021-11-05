@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+
+
+{% block body %}
+
+<h1> Happening now </h1>
+    
+<h2> Join Check today. </h2>
+
+<h3> Create your account -> </h3>
+
+<form action="/users" method="POST">
+    <p>
+        Username <input type="text" name="username">
+    </p>
+    <p>
+        Email <input type="text" name="email">
+    </p>
+    <p>
+        Password <input type="password" name="password">
+    </p>
+    <p>
+        <input type="submit">
+    </p>
+</form>
+<p>
+    By signing up, you agree to the Terms of Service and Privacy Policy, including Cookie Use.
+</p>
+<h4>
+    Already have an account? 
+</h4>
+<h2> Sign in to Check </h2>
+
+<form action="/login" method="POST">
+    <p>
+        Email <input type="text" name="email">
+    </p>
+    <p>
+        Password <input type="password" name="password">
+    </p>
+    <p>
+        <input type="submit">
+    </p>
+</form>
+{% endblock %}

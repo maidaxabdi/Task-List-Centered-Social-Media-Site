@@ -24,7 +24,7 @@ class User(db.Model):
                         primary_key=True)
     username = db.Column(db.String(50), unique = True, nullable = False)
     name = db.Column(db.String(50))
-    email = db.Column(db.String, nullable = False)
+    email = db.Column(db.String, nullable = False, unique = True)
     password = db.Column(db.String(50), nullable = False)
     is_private = db.Column(db.Boolean)
     profile_picture = db.Column(db.String)
@@ -49,8 +49,8 @@ class Task(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey("users.user_id"))
     task = db.Column(db.Text, nullable = False)
     urgency = db.Column(db.String)
-    reoccurring = db.Column(db.Boolean)
-    Active = db.Column(db.Boolean)
+    recurring = db.Column(db.Boolean)
+    active = db.Column(db.Boolean)
 
     user = db.relationship("User", backref="tasks")
 
@@ -67,7 +67,7 @@ class Reminder(db.Model):
                         autoincrement= True,
                         primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey("users.user_id"))
-    text = db.Column(db.String(140), nullable = False)
+    reminder = db.Column(db.String(140), nullable = False)
 
     user_remember = db.relationship("User", backref="reminders")
 
@@ -129,7 +129,7 @@ class Post_Interactions(db.Model):
 
 
     user_interactions = db.relationship("User", backref="post_interactions")
-    post_interactions = db.relationship("Post", backref="interactions")
+    interactions = db.relationship("Post", backref="post_interactions")
 
     def __repr__(self):
         return f'<Post Interactions post_interaction_id={self.post_interaction_id}>'
@@ -144,14 +144,14 @@ class Comment_Interactions(db.Model):
                         autoincrement= True,
                         primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey("users.user_id"))
-    post_interaction_id = db.Column(db.Text, db.ForeignKey("post_interaction.post_interaction_id"))
-    comments_comment = db.Columnt(db.Text)
+    post_interaction_id = db.Column(db.Integer, db.ForeignKey("post_interactions.post_interaction_id"))
+    comments_comment = db.Column(db.Text)
     comments_date_made = db.Column(db.DateTime)
     comment_liked = db.Column(db.Boolean)
 
 
     user_comment_interactions = db.relationship("User", backref="comment_interactions")
-    comment_interactions = db.relationship("Post", backref="comment_interactions")
+    interactions = db.relationship("Post_Interactions", backref="comment_interactions")
 
     def __repr__(self):
         return f'<Comment Interactions comment_interaction_id={self.comment_interaction_id}>'
@@ -181,7 +181,11 @@ class Group(db.Model):
                         autoincrement= True,
                         primary_key=True)
     group_name = db.Column(db.String(70), nullable = False)
-    
+    user_id = db.Column(db.Integer, db.ForeignKey("users.user_id"))
+
+
+    group_creater = db.relationship("User", backref="created_group")
+
     def __repr__(self):
         return f'<Group group_id={self.following_id} group_name={self.group_name}>'
 
