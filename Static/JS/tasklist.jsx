@@ -1,4 +1,3 @@
-let completedTask;
 // OUTLINE FOR MAIN OUTPUT
 function Task(props) {
     return (
