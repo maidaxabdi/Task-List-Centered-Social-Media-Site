@@ -5,7 +5,6 @@ from model import Comment_Interactions, db, User, Task, Reminder, Reward, Follow
 ## CREATE USER 
 
 def create_user(email, password, username, date_account_created, name = None, profile_picture = None, is_private = False):
-    #date_created = datetime.now().replace(second=0, microsecond=0)
     user = User(email=email, password=password, username = username, 
                 name = name, profile_picture = profile_picture, 
                 is_private = is_private, date_account_created = date_account_created)
@@ -22,6 +21,13 @@ def get_user_by_email(email):
 
     return User.query.filter_by(email = email).first()
 
+
+## GET USER ID BY EMAIL
+
+def get_user_id(email):
+    user = User.query.filter_by(email = email).first()
+    user_id = user.user_id
+    return user_id
 
 ## CHECK IF USER WITH THAT USERNAME ALREADY EXISTS
 
@@ -41,6 +47,33 @@ def create_task(user_id, task, urgency, recurring = False, active = True):
     db.session.commit()
 
     return task
+
+
+## RETURN LIST OF USERS TASKS
+
+def list_tasks(user_id):
+    tasks = Task.query.filter_by(user_id = user_id).all()
+    
+   
+    return tasks
+
+
+## RETURN LENGTH OF LIST BY USER
+
+def number_tasks(user_id):
+    tasks_count = Task.query.filter_by(user_id = user_id).count()
+
+    return tasks_count
+
+
+## DEACTIVATE TASK BY TASK ID
+def completed_task(taskId, user_id):
+
+    get_task = Task.query.filter(Task.task_id == taskId and Task.user_id == user_id).first()
+    get_task.active = False
+    db.session.add(get_task)
+    db.session.commit()
+    return get_task
 
 
 # CREATE REWARD SYSTEM FOR TASKS
@@ -97,7 +130,6 @@ def users_likes(user_id):
     likes.extend(Post_Interactions.query.filter(Post_Interactions.user_id == user_id & Post_Interactions.liked == True).all())
     likes.extend(Comment_Interactions.query.filter(Comment_Interactions.user_id == user_id & Comment_Interactions.liked == True).all())
     
-    ##want information about post / comment to show up, dictionary and loop through? AND Join query 
     #likes[0].user_interactions
     #likes[0].post_interactions
 
@@ -132,7 +164,7 @@ def users_in_group(group_id):
 
     users_in_group = User_Group.query.filter(User_Group.group_id == group_id).group_by(User_Group.user_id).all()
 
-    ## WANT TO RETURN THERE PROFILE PICS and names- join query
+
     return users_in_group
 
 
@@ -160,7 +192,6 @@ def follow_user(user_id, follow_user_id):
 def get_following(user_id):
     users_following = Follow.query.filter(Follow.user_id == user_id).group_by(Follow.follow_user_id).all()
    
-    ## RETURN USERS Profile pic, bio, name, username - dictionary? join query
     return users_following
 
 
@@ -169,7 +200,6 @@ def get_following(user_id):
 def get_followers(user_id):
     followers = Follow.query.filter(Follow.follow_user_id == user_id).group_by(Follow.user_id).all()
     
-    ## RETURN USERS Profile pic, bio, name, username - dictionary? join query 
     return followers
 
 
@@ -204,7 +234,6 @@ def search_site(search):
     result += Post_Interactions.query.filter(Post_Interactions.comment.like(f'%{search}%')).all()
     result += Comment_Interactions.query.filter(Comment_Interactions.comments_comment.like(f'%{search}%')).all()
 
-    #want to return all information - dictionary? Profile pics, posts, comments, etc
     return result 
 
 

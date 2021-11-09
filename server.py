@@ -1,5 +1,5 @@
 from flask import (Flask, render_template, request, flash, session,
-                   redirect)
+                   redirect, jsonify)
 from model import connect_to_db
 import crud
 from jinja2 import StrictUndefined
@@ -29,7 +29,7 @@ def next_steps():
     email_exists = crud.get_user_by_email(email)
     username_exists = crud.get_user_by_username(username)
 
-    if email is "" or username is "" or password is "":
+    if email == "" or username == "" or password == "":
         flash("Please enter in the required fields.")
     elif email_exists:
         flash("That email is already in use. Please sign in.")
@@ -60,6 +60,46 @@ def current_user():
 
     return redirect ('/')
     
+@app.route("/add-task", methods=["POST"])
+def add_task():
+    task = request.get_json().get("task")
+    urgency = request.get_json().get("urgency")
+    user_id = crud.get_user_id(session['current_user'])
+    the_task = crud.create_task(user_id, task = task, urgency = urgency)
+
+    new_task = {
+        "task": task, 
+        "urgency": urgency,
+        "taskId": the_task.task_id,
+        "active": the_task.active,
+    }
+
+    return jsonify({"addedTask" : new_task})
+
+@app.route("/tasks")
+def list_tasks():
+    user_id = crud.get_user_id(session['current_user'])
+    all_tasks = crud.list_tasks(user_id)
+    list_tasks = []
+    
+    for the_task in all_tasks:
+        list_tasks.append({'task' : the_task.task, 'urgency' : the_task.urgency, 'taskId' : the_task.task_id, 'active' : the_task.active})
+    return jsonify({"allTasks" : list_tasks})
+
+@app.route("/deactivate-task",  methods=["POST"])
+def deactivate_task():
+    taskId = request.get_json("props.taskId")
+    user_id = crud.get_user_id(session['current_user'])
+    the_task = crud.completed_task(taskId, user_id)
+    task_completed = {
+        "task": the_task.task, 
+        "urgency": the_task.urgency,
+        "taskId": the_task.task_id,
+        "active": the_task.active,
+    }
+    return jsonify({"completedTask" : task_completed})
+    
+
 
 if __name__ == "__main__":
     connect_to_db(app)
