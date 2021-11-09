@@ -67,12 +67,32 @@ def number_tasks(user_id):
 
 
 ## DEACTIVATE TASK BY TASK ID
-def completed_task(taskId, user_id):
 
+def completed_task(taskId, user_id):
     get_task = Task.query.filter(Task.task_id == taskId and Task.user_id == user_id).first()
     get_task.active = False
+
     db.session.add(get_task)
     db.session.commit()
+
+    return get_task
+
+
+## DELETE TASK BY TASK ID
+
+def delete_task(taskId, user_id):
+    get_task = Task.query.filter(Task.task_id == taskId and Task.user_id == user_id).delete()
+
+    db.session.commit()
+
+    return get_task
+
+
+## GET TASK BY TASK ID
+
+def get_task(taskId, user_id):
+    get_task = Task.query.filter(Task.task_id == taskId and Task.user_id == user_id).first()
+
     return get_task
 
 

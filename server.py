@@ -99,7 +99,23 @@ def deactivate_task():
     }
     return jsonify({"completedTask" : task_completed})
     
+@app.route("/delete-task",  methods=["POST"])
+def delete_task():
+    taskId = request.get_json("props.taskId")
+    user_id = crud.get_user_id(session['current_user'])
+    the_task = crud.get_task(taskId, user_id)
+    
+    task_deleted = {
+        "task": the_task.task, 
+        "urgency": the_task.urgency,
+        "taskId": the_task.task_id,
+        "active": the_task.active,
+    }
 
+    crud.delete_task(taskId, user_id)
+
+    return jsonify({"deletedTask" : task_deleted})
+  
 
 if __name__ == "__main__":
     connect_to_db(app)

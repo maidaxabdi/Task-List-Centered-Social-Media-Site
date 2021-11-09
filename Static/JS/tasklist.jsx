@@ -1,14 +1,14 @@
-// OUTLINE FOR MAIN OUTPUT
+// OUTLINE FOR MAIN OUTPUT OF THE TASK
 function Task(props) {
     return (
-        <p className="task">
+        <span className="task">
             {props.urgency}: {props.task}
-        </p>
+        </span>
     );
 }
 
 // HTML OUTPUT TO GET USERS TASK INPUT AND THEN CONNECT TO FLASK IN ORDER TO ADD IT TO DATABASE
-// THEN VALUES RETRIEVED SET TO 
+// THEN VALUES RETRIEVED PUSHED TO FUNCTION THAT WILL RIGHT AWAY ADD TASK TO LIST
 function AddTheTask(props) {
     const [task, setTask] = React.useState("");
     const [urgency, setUrgency] = React.useState("");
@@ -48,6 +48,9 @@ function AddTheTask(props) {
     );
  }
 
+ // IF USER COMPLETED TASK THEY CAN NOTIFY DATABASE SO WHEN THEIR LIST OF CURRENT TASKS PRINTS ON WEBSITE
+ // THE USER WILL ONLY SEE CURRENTLY ACTIVE TASKS
+
  function TaskComplete(props) {
     function deactivateTask() {
         fetch('/deactivate-task', {
@@ -60,23 +63,43 @@ function AddTheTask(props) {
             response.json().then(jsonResponse => {
             const {completedTask} = jsonResponse;
             const {taskId: taskIdText, task: taskText, urgency: urgencyText, active: activeBoolean} = completedTask;
-            props.doneTask(taskIdText, taskText, urgencyText, activeBoolean);
+            props.endTask(taskIdText, taskText, urgencyText, activeBoolean);
         });
     }); 
     }
     return (
-        <React.Fragment>
-            <button value={props.taskId} onClick={deactivateTask}>Check</button>
-        </React.Fragment>
+        <button value={props.taskId} onClick={deactivateTask}>Check</button>
     );
  }
 
+ // IF USER DOESN'T WANT TO DO TASK ANYMORE THEY CAN DELETE IT FROM DATABASE
+ function TaskDelete(props) {
+    function deleteTask() {
+        fetch('/delete-task', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+              },
+              body: props.taskId,
+            }).then(response => {
+                response.json().then(jsonResponse => {
+                const {deletedTask} = jsonResponse;
+                const {taskId, task: taskText, urgency: urgencyText, active: activeBoolean} = deletedTask;
+                props.endTask(taskId, taskText, urgencyText, activeBoolean);
+            });
+        });
+        }
+
+    return (
+        <button value={props.taskId} onClick={deleteTask}>Delete</button>
+    );
+ }
 
 // RETURNS ALL TASKS THAT SHOULD BE IN TASKLIST AND CONNECTS TO OUTLINE IN FIRST FUNCTION
 // ADDTASK FUNCTION TAKES DATA RETRIEVED FROM FETCH/FROM USER INPUT AND PUTS INSIDE TASKLIST WE WANT TO RETURN TO PAGE
  function TaskList() {
     const [tasks, setTasks] = React.useState([]);
-    const [complete, setComplete] = React.useState([]);
+    const [ended, setEndTask] = React.useState([]);
 
     function addTask(taskId, task, urgency, active) {
         const newTask= {taskId, task, urgency, active}; 
@@ -84,26 +107,26 @@ function AddTheTask(props) {
         setTasks([...currentTasks, newTask]);
     }
     
-    function doneTask(taskId, task, urgency, active) {
-        const currentComplete= {taskId, task, urgency, active}; 
-        const completedTask = [...complete]; 
-        setComplete([...completedTask, currentComplete]);
+    function endTask(taskId, task, urgency, active) {
+        const currentEnded= {taskId, task, urgency, active}; 
+        const allEnded = [...ended]; 
+        setEndTask([...allEnded, currentEnded]);
     }
     
     React.useEffect(() =>{
         fetch('/tasks')
             .then(response => response.json())
             .then(result => setTasks(result.allTasks));
-    }, [complete]);
+    }, [ended]);
 
     const addedTask = [];
     console.log(`tasks: `, tasks);
     for (const currentTask of tasks) {
         if (currentTask.active === true) {
             addedTask.push(
-                <p key={currentTask.taskId}>
+                <div key={currentTask.taskId}>
                 <TaskComplete
-                doneTask={doneTask} 
+                endTask={endTask} 
                 taskId={currentTask.taskId}
                 /> 
                 <Task
@@ -111,7 +134,11 @@ function AddTheTask(props) {
                 task={currentTask.task}
                 urgency={currentTask.urgency}
                 />
-                </p>
+                <TaskDelete
+                endTask={endTask} 
+                taskId={currentTask.taskId}
+                />
+                </div>
                 );
         }
         }
