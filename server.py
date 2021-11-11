@@ -52,14 +52,24 @@ def current_user():
 
     if user and user.password == password:
         session['current_user'] = user.email
-        return render_template ('mainfeed.html')
+        return redirect ('/home')
     elif user and user.password != password:
         flash('Password is incorrect! Please try again.')
     else:
         flash('User with that email does not exist. Please create an account.')
+    return redirect ('/')
+
+@app.route("/home")
+def visit_home():
+    
+    return render_template ('mainfeed.html')
+        
+@app.route("/log-out", methods=["POST"])
+def log_out():
+    session.pop('current_user')
 
     return redirect ('/')
-    
+
 @app.route("/add-task", methods=["POST"])
 def add_task():
     task = request.get_json().get("task")
@@ -116,6 +126,35 @@ def delete_task():
 
     return jsonify({"deletedTask" : task_deleted})
   
+@app.route("/create-reward",  methods=["POST"])
+def create_reward():
+    reward = request.get_json().get("reward")
+    user_id = crud.get_user_id(session['current_user'])
+    the_reward = crud.create_reward(user_id, reward)
+    createdReward = {
+        "reward": the_reward.reward,
+    }
+    return jsonify({"rewardCreated" : createdReward})
+
+@app.route("/random-reward")
+def random_reward():
+    user_id = crud.get_user_id(session['current_user'])
+    rewardEarned = crud.random_reward(user_id)
+    return jsonify({"randomReward" : rewardEarned})
+
+@app.route("/create-amount",  methods=["POST"])
+def create_amount():
+    amount = request.get_json().get("amount")
+    user_id = crud.get_user_id(session['current_user'])
+    crud.set_amount(user_id, amount)
+    return jsonify({"amountWantedDone" : amount})
+
+@app.route("/amount")
+def reward_when():
+    user_id = crud.get_user_id(session['current_user'])
+    number = crud.amount_reward(user_id)
+    
+    return jsonify({"tasksCompleted" : number})
 
 if __name__ == "__main__":
     connect_to_db(app)

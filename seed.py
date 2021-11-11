@@ -35,8 +35,7 @@ for n in range(10):
     crud.create_task(user_id, task, urgency)
 
     reward = choice(choose_reward)
-    tasks_completed = randint(1, 100)
-    crud.create_reward(user_id, reward, tasks_completed)
+    crud.create_reward(user_id, reward)
 
     reminder = choice(reminder_choose)
     crud.create_reminder(user_id, reminder)

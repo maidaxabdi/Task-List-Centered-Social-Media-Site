@@ -1,12 +1,12 @@
 from model import Comment_Interactions, db, User, Task, Reminder, Reward, Follow, Post, Post_Interactions, Group, User_Group, connect_to_db
-
+from random import choice 
 
 
 ## CREATE USER 
 
-def create_user(email, password, username, date_account_created, name = None, profile_picture = None, is_private = False):
+def create_user(email, password, username, date_account_created, tasks_completed = 30, name = None, profile_picture = None, is_private = False):
     user = User(email=email, password=password, username = username, 
-                name = name, profile_picture = profile_picture, 
+                tasks_completed = tasks_completed, name = name, profile_picture = profile_picture, 
                 is_private = is_private, date_account_created = date_account_created)
 
     db.session.add(user)
@@ -98,8 +98,8 @@ def get_task(taskId, user_id):
 
 # CREATE REWARD SYSTEM FOR TASKS
 
-def create_reward(user_id, reward, tasks_completed):
-    reward = Reward(user_id = user_id, reward = reward, tasks_completed = tasks_completed)
+def create_reward(user_id, reward):
+    reward = Reward(user_id = user_id, reward = reward)
 
 
     db.session.add(reward)
@@ -108,6 +108,34 @@ def create_reward(user_id, reward, tasks_completed):
     return reward
 
 
+## SET AMOUNT TASKS COMPLETED UNTILL REWARD TO USER
+def set_amount(user_id, amount):
+    user = User.query.filter(User.user_id == user_id).first()
+    user.tasks_completed = amount
+
+    db.session.add(user)
+    db.session.commit()
+
+    return user
+
+
+## FIND OUT AMOUNT USER NEEDS TO COMPLETE FOR REWARD
+def amount_reward(user_id):
+    get_amount = User.query.filter(User.user_id == user_id).first()
+
+    return get_amount.tasks_completed
+
+
+## Return Random Reward From List of Rewards
+
+def random_reward(user_id):
+    get_rewards = Reward.query.filter(Reward.user_id == user_id).all()
+    random_reward = choice(get_rewards)
+    
+    reward = random_reward.reward
+    return reward
+    
+    
 ## CREATE REMINDERS
 
 def create_reminder(user_id, reminder):

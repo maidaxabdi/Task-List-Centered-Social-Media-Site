@@ -28,6 +28,7 @@ class User(db.Model):
     password = db.Column(db.String(50), nullable = False)
     is_private = db.Column(db.Boolean)
     profile_picture = db.Column(db.String)
+    tasks_completed = db.Column(db.Integer)
     date_account_created = db.Column(db.DateTime)
 
     follows = db.relationship("User", secondary="following", primaryjoin=("User.user_id == Follow.user_id"), secondaryjoin=("User.user_id == Follow.follow_user_id"))
@@ -85,8 +86,7 @@ class Reward(db.Model):
                         primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey("users.user_id"))
     reward = db.Column(db.String(140), nullable = False)
-    tasks_completed = db.Column(db.Integer, nullable = False)
-
+    
     user_rewards = db.relationship("User", backref="rewards")
 
     def __repr__(self):
