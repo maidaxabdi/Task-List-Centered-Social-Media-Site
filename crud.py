@@ -61,7 +61,7 @@ def list_tasks(user_id):
 ## RETURN COUNT OF COMPLETED TASKS
 
 def completed_count(user_id):
-    completed_count = Task.query.filter(Task.user_id == user_id and Task.active == False).count()
+    completed_count = Task.query.filter(Task.user_id == user_id, Task.active == False).count()
 
     return completed_count
 

@@ -246,7 +246,7 @@ function TaskComplete(props) {
         fetch('/completed-tasks')
             .then(response => response.json())
             .then(result => setCompleted(result.completed));
-        }, [taskComplete]);
+        }, [completeTask]);
 
     return (
         <React.Fragment>
