@@ -1,7 +1,8 @@
-<!DOCTYPE html>
-<html> 
-    
-    <body>
+{% extends 'base.html' %}
+
+
+{% block body %}
+
         <h1> Happening now </h1>
     
         <h2> Join Check today. </h2>
@@ -41,5 +42,6 @@
                 <input type="submit">
             </p>
         </form>
-    </body>
-</html>
+        {% block js %}
+        {% endblock %}
+{% endblock %}

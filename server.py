@@ -52,6 +52,7 @@ def current_user():
 
     if user and user.password == password:
         session['current_user'] = user.email
+        flash('You have successfully logged in!')
         return redirect ('/home')
     elif user and user.password != password:
         flash('Password is incorrect! Please try again.')
@@ -59,16 +60,19 @@ def current_user():
         flash('User with that email does not exist. Please create an account.')
     return redirect ('/')
 
+
 @app.route("/home")
 def visit_home():
     
     return render_template ('mainfeed.html')
         
+
 @app.route("/log-out", methods=["POST"])
 def log_out():
     session.pop('current_user')
 
     return redirect ('/')
+
 
 @app.route("/add-task", methods=["POST"])
 def add_task():
@@ -86,6 +90,7 @@ def add_task():
 
     return jsonify({"addedTask" : new_task})
 
+
 @app.route("/tasks")
 def list_tasks():
     user_id = crud.get_user_id(session['current_user'])
@@ -95,6 +100,7 @@ def list_tasks():
     for the_task in all_tasks:
         list_tasks.append({'task' : the_task.task, 'urgency' : the_task.urgency, 'taskId' : the_task.task_id, 'active' : the_task.active})
     return jsonify({"allTasks" : list_tasks})
+
 
 @app.route("/deactivate-task",  methods=["POST"])
 def deactivate_task():
@@ -108,7 +114,8 @@ def deactivate_task():
         "active": the_task.active,
     }
     return jsonify({"completedTask" : task_completed})
-    
+
+
 @app.route("/delete-task",  methods=["POST"])
 def delete_task():
     taskId = request.get_json("props.taskId")
@@ -126,21 +133,54 @@ def delete_task():
 
     return jsonify({"deletedTask" : task_deleted})
   
+
 @app.route("/create-reward",  methods=["POST"])
 def create_reward():
     reward = request.get_json().get("reward")
     user_id = crud.get_user_id(session['current_user'])
     the_reward = crud.create_reward(user_id, reward)
     createdReward = {
-        "reward": the_reward.reward,
+        "reward": reward,
+        "rewardId": the_reward.reward_id,
     }
     return jsonify({"rewardCreated" : createdReward})
+
 
 @app.route("/random-reward")
 def random_reward():
     user_id = crud.get_user_id(session['current_user'])
     rewardEarned = crud.random_reward(user_id)
     return jsonify({"randomReward" : rewardEarned})
+
+
+@app.route("/reward")
+def list_reward():
+    user_id = crud.get_user_id(session['current_user'])
+    allRewards = crud.list_rewards(user_id)
+    list_rewards = []
+    
+    for the_reward in allRewards:
+        list_rewards.append({'reward' : the_reward.reward, 'rewardId' : the_reward.reward_id})
+    
+    
+    return jsonify({"allRewards" : list_rewards})
+
+
+@app.route("/delete-reward",  methods=["POST"])
+def delete_reward():
+    rewardId = request.get_json("props.rewardId")
+    user_id = crud.get_user_id(session['current_user'])
+    the_reward = crud.get_reward(rewardId, user_id)
+    
+    reward_deleted = {
+        "reward": the_reward.reward, 
+        "rewardId": rewardId,
+    }
+
+    crud.delete_reward(rewardId, user_id)
+
+    return jsonify({"deletedReward" : reward_deleted})
+
 
 @app.route("/create-amount",  methods=["POST"])
 def create_amount():
@@ -149,12 +189,31 @@ def create_amount():
     crud.set_amount(user_id, amount)
     return jsonify({"amountWantedDone" : amount})
 
+
 @app.route("/amount")
 def reward_when():
     user_id = crud.get_user_id(session['current_user'])
     number = crud.amount_reward(user_id)
     
-    return jsonify({"tasksCompleted" : number})
+    return jsonify({"afterCompleted" : number})
+
+
+@app.route("/completed-tasks")
+def number_completed():
+    user_id = crud.get_user_id(session['current_user'])
+    number = crud.completed_count(user_id)
+    
+    return jsonify({"completed" : number})
+
+
+app.route("/create-post")
+def new_Post():
+    post = request.get_json().get("userPosts")
+    user_id = crud.get_user_id(session['current_user'])
+    userPost = crud.create_post(user_id, post)
+    
+    return jsonify({"createPost" : userPost})
+
 
 if __name__ == "__main__":
     connect_to_db(app)

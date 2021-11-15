@@ -58,12 +58,12 @@ def list_tasks(user_id):
     return tasks
 
 
-## RETURN LENGTH OF LIST BY USER
+## RETURN COUNT OF COMPLETED TASKS
 
-def number_tasks(user_id):
-    tasks_count = Task.query.filter_by(user_id = user_id).count()
+def completed_count(user_id):
+    completed_count = Task.query.filter(Task.user_id == user_id and Task.active == False).count()
 
-    return tasks_count
+    return completed_count
 
 
 ## DEACTIVATE TASK BY TASK ID
@@ -94,6 +94,24 @@ def get_task(taskId, user_id):
     get_task = Task.query.filter(Task.task_id == taskId and Task.user_id == user_id).first()
 
     return get_task
+
+
+## GET REWARD BY REWARD ID
+
+def get_reward(rewardId, user_id):
+    get_reward = Reward.query.filter(Reward.reward_id == rewardId and Reward.user_id == user_id).first()
+
+    return get_reward
+
+
+## DELETE REWARD BY REWARD ID
+
+def delete_reward(rewardId, user_id):
+    get_reward = Reward.query.filter(Reward.reward_id == rewardId and Reward.reward_id == user_id).delete()
+
+    db.session.commit()
+
+    return get_reward
 
 
 # CREATE REWARD SYSTEM FOR TASKS
@@ -134,6 +152,14 @@ def random_reward(user_id):
     
     reward = random_reward.reward
     return reward
+    
+
+## Return List of Rewards
+
+def list_rewards(user_id):
+    get_rewards = Reward.query.filter(Reward.user_id == user_id).all()
+    
+    return get_rewards
     
     
 ## CREATE REMINDERS

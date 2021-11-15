@@ -14,13 +14,8 @@
         </p>
       {% endfor %}
       <div id="main"></div>
-      <form action="/log-out" method="POST">
-      <button submit="submit"> Log Out </button>
-      </form>
-      <h1> Task List </h1>
       <div id="taskList"></div>
-      
-      <div id="rewardsForm"></div>
+
         {% block body %}
         {% endblock %}
 
@@ -29,5 +24,6 @@
         <script src="/static/js/settings.jsx" type="text/jsx"></script>
 	      <script src="/static/js/tasklist.jsx" type="text/jsx"></script>
         {% endblock %}
+    
     </body>
 </html>
