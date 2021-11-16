@@ -185,6 +185,32 @@ def create_post(user_id, post, post_date_made, post_title, is_private = False):
     return post
 
 
+## GET POST BY POST ID
+
+def get_post(postId, user_id):
+    get_post = Post.query.filter(Post.post_id == postId and Reward.user_id == user_id).first()
+
+    return get_post
+
+
+## RETURN LIST OF POSTS
+
+def list_posts(user_id):
+    get_posts = Post.query.filter(Post.user_id == user_id).all()
+    
+    return get_posts
+
+
+## DELETE POST BY POST ID
+
+def delete_post(postId, user_id):
+    get_post = Post.query.filter(Post.user_id == user_id, Post.post_id == postId).delete()
+
+    db.session.commit()
+
+    return get_post
+
+
 ## CREATE COMMENT 
 
 def create_comment(user_id, post_id, comment, comment_date_made):

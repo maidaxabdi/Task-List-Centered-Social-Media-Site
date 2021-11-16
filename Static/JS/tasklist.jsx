@@ -61,9 +61,7 @@ function AddTheTask(props) {
 function TaskComplete(props) {
     const [reward, setReward] = React.useState('');
     const [target, setTarget] = React.useState('begin');
-
     
-
     function deactivateTask() {
         fetch('/deactivate-task', {
             method: 'POST',
@@ -87,12 +85,12 @@ function TaskComplete(props) {
             .then(result => setReward(result.randomReward));
     }, [target]);
 
-    let amountSet = props.amount;
-    let tasksCompleted = props.completed;
-    console.log(amountSet)
-    console.log(tasksCompleted)
     
     function countCompleted() {    
+        let amountSet = props.amount;
+        let tasksCompleted = props.completed;
+        console.log(amountSet)
+        console.log(tasksCompleted)
         if (tasksCompleted % amountSet === 0) {
             setTarget('received');
             alert(`Congratulations! You have earned: ${reward}`);
@@ -142,11 +140,9 @@ function TaskComplete(props) {
     const [amount, setAmount] = React.useState('');
     const [showRewards, setShowRewards] = React.useState(false);
     const [showLogout, setShowLogout] = React.useState(false);
-    const [showProfile, setShowProfile] = React.useState(false);
 
-    const showRewardForum = () => { setShowRewards(true); setShowLogout(false); setShowProfile(true) }
-    const showLogoutForum = () => { setShowLogout(true); setShowRewards(false); setShowProfile(true) }
-    const showProfileFeed = () => { setShowLogout(false); setShowRewards(false); setShowProfile(true) }
+    const showRewardForum = () => { setShowRewards(true); setShowLogout(false) }
+    const showLogoutForum = () => { setShowLogout(true); setShowRewards(false) }
 
 
     function addTask(taskId, task, urgency, active) {
@@ -168,7 +164,7 @@ function TaskComplete(props) {
     }, [ended]);
 
     const addedTask = [];
-    console.log(`tasks: `, tasks);
+    // console.log(`tasks: `, tasks);
     for (const currentTask of tasks) {
         if (currentTask.active === true) {
             addedTask.push(
@@ -208,7 +204,7 @@ function TaskComplete(props) {
     }, [added]);
 
     const listRewards = [];
-    console.log(`rewards: `, rewards);
+    // console.log(`rewards: `, rewards);
     for (const currentReward of rewards) {
             listRewards.push(
                 <div key={currentReward.rewardId}>
@@ -254,12 +250,11 @@ function TaskComplete(props) {
             <AddTheTask addTask={addTask}/>
             <h2> Tasks </h2>
             <div className="grid">{addedTask}</div>
+            <h2> Sidebar </h2>
             <button onClick={showRewardForum}> Rewards </button>
             { showRewards ? <ListRewards editReward={editReward} rewardList={listRewards} changedAmount={changedAmount}/> : null }
             <button onClick={showLogoutForum}> Logout </button>
             { showLogout ? <Logout /> : null }
-            {/* <button onClick={showProfileFeed}> Profile </button>
-            { showProfile ? <Profile /> : null } */}
         </React.Fragment>
     );
 }

@@ -206,13 +206,51 @@ def number_completed():
     return jsonify({"completed" : number})
 
 
-app.route("/create-post")
-def new_Post():
-    post = request.get_json().get("userPosts")
+@app.route("/new-post",  methods=["POST"])
+def new_post():
+    post = request.get_json().get("post")
+    post_title = request.get_json().get("postTitle")
     user_id = crud.get_user_id(session['current_user'])
-    userPost = crud.create_post(user_id, post)
+    post_date_made = datetime.now().replace(second=0, microsecond=0)
+    the_post = crud.create_post(user_id, post, post_date_made, post_title)
     
-    return jsonify({"createPost" : userPost})
+    thePost = {
+        "post": post,
+        "postTitle": post_title,
+        "postId": the_post.post_id,
+    }
+
+    return jsonify({"createdPost" : thePost})
+
+
+@app.route("/delete-post",  methods=["POST"])
+def delete_post():
+    postId = request.get_json("props.postId")
+    user_id = crud.get_user_id(session['current_user'])
+    the_post = crud.get_post(postId, user_id)
+    
+    post_deleted = {
+        "post": the_post.post, 
+        "postTitle": the_post.post_title,
+        "postId": postId,
+    }
+
+    crud.delete_post(postId, user_id)
+
+    return jsonify({"deletedPost" : post_deleted})
+
+
+@app.route("/posts")
+def list_posts():
+    user_id = crud.get_user_id(session['current_user'])
+    allPosts = crud.list_posts(user_id)
+    list_posts = []
+    
+    for the_post in allPosts:
+        list_posts.append({'post' : the_post.post, 'postTitle' : the_post.post_title, 'postId' : the_post.post_id})
+    
+    
+    return jsonify({"allPosts" : list_posts})
 
 
 if __name__ == "__main__":
