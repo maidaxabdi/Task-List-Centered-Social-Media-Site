@@ -1,8 +1,134 @@
+
+// RETURNS ALL TASKS THAT SHOULD BE IN TASKLIST AND CONNECTS TO OUTLINE IN FIRST FUNCTION
+// ADDTASK FUNCTION TAKES DATA RETRIEVED FROM FETCH/FROM USER INPUT AND PUTS INSIDE TASKLIST WE WANT TO RETURN TO PAGE
+// ENDTASK FUNCTION ACCOUNTS FOR TASKS COMPLETED AND DELETED SO USEEFFECT CAN ONLY SHOW CURRENT TASKS
+function TaskList() {
+    const [tasks, setTasks] = React.useState([]);
+    const [rewards, setRewards] = React.useState([]);
+    const [ended, setEndTask] = React.useState([]);
+    const [added, setAdded] = React.useState([]);
+    const [taskComplete, setTaskComplete] = React.useState([]);
+    const [completed, setCompleted] = React.useState([]);
+    const [newAmount, setNewAmount] = React.useState([]);
+    const [amount, setAmount] = React.useState('');
+    const [showRewards, setShowRewards] = React.useState(false);
+    
+    const showRewardForum = () => { setShowRewards(true) }
+
+    function addTask(taskId, task, active) {
+        const newTask= {taskId, task, active}; 
+        const currentTasks = [...tasks]; 
+        setTasks([...currentTasks, newTask]);
+    }
+    
+    function endTask(taskId, task, active) {
+        const currentEnded= {taskId, task, active}; 
+        const allEnded = [...ended]; 
+        setEndTask([...allEnded, currentEnded]);
+    }
+    
+    React.useEffect(() =>{
+        fetch('/tasks')
+            .then(response => response.json())
+            .then(result => setTasks(result.allTasks));
+    }, [ended]);
+
+    const addedTask = [];
+    // console.log(`tasks: `, tasks);
+    for (const currentTask of tasks) {
+        if (currentTask.active === true) {
+            addedTask.push(
+                <div key={currentTask.taskId}>
+                <TaskComplete
+                endTask={endTask}
+                amount={amount} 
+                taskId={currentTask.taskId}
+                completeTask={completeTask}
+                completed={completed}
+                /> 
+                <Task
+                taskId={currentTask.taskId}
+                task={currentTask.task}
+                />
+                <TaskDelete
+                endTask={endTask} 
+                taskId={currentTask.taskId}
+                />
+                </div>
+                );
+        
+        }
+    }
+
+    function editReward(rewardId, reward) {
+        const currentAdded= {rewardId, reward}; 
+        const allAdded = [...added]; 
+        setAdded([...allAdded, currentAdded]);
+    }
+
+    React.useEffect(() =>{
+        fetch('/reward')
+            .then(response => response.json())
+            .then(result => setRewards(result.allRewards));
+    }, [added]);
+
+    const listRewards = [];
+    // console.log(`rewards: `, rewards);
+    for (const currentReward of rewards) {
+            listRewards.push(
+                <div key={currentReward.rewardId}>
+                <MyReward
+                rewardId={currentReward.rewardId}
+                reward={currentReward.reward}
+                /> 
+                <RewardDelete
+                editReward={editReward} 
+                rewardId={currentReward.rewardId}
+                />
+                </div>
+                );
+        
+        }
+
+    function changedAmount(amount) {
+        const {changeAmount}= {amount}; 
+        setNewAmount([changeAmount]);
+    }
+
+    React.useEffect(() =>{
+        fetch('/amount')
+            .then(response => response.json())
+            .then(result => setAmount(result.afterCompleted));
+            console.log(amount);
+        }, [newAmount]); 
+
+    function completeTask(taskId, task, urgency, active) {
+        const {doneTask}= {taskId, task, urgency, active};
+        setTaskComplete([doneTask]);
+        } 
+
+    React.useEffect(() => {
+        fetch('/completed-tasks')
+            .then(response => response.json())
+            .then(result => setCompleted(result.completed));
+        }, [taskComplete]);
+
+    return (
+        <React.Fragment>
+            <h2> Task List </h2>
+            <AddTheTask addTask={addTask}/>
+            <div className="grid">{addedTask}</div>
+            <button onClick={showRewardForum}> Rewards </button>
+            { showRewards ? <ListRewards editReward={editReward} rewardList={listRewards} changedAmount={changedAmount}/> : null } 
+        </React.Fragment>
+    );
+}
+
 // OUTLINE FOR MAIN OUTPUT OF THE TASK AND REWARD
 function Task(props) {
     return (
         <span className="task">
-            {props.urgency}: {props.task}
+            {props.task}
         </span>
     );
 }
@@ -18,35 +144,29 @@ function MyReward(props) {
 // THEN VALUES RETRIEVED PUSHED TO FUNCTION THAT WILL RIGHT AWAY ADD TASK TO LIST
 function AddTheTask(props) {
     const [task, setTask] = React.useState("");
-    const [urgency, setUrgency] = React.useState("");
     function addNewTask() {
         fetch('/add-task', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
               },
-              body: JSON.stringify({task, urgency}),
+              body: JSON.stringify({task}),
         }).then(response => {
             response.json().then(jsonResponse => {
             const {addedTask} = jsonResponse;
-            const {taskId, task: taskText, urgency: urgencyText, active: activeBoolean} = addedTask;
-            props.addTask(taskId, taskText, urgencyText, activeBoolean);
+            const {taskId, task: taskText, active: activeBoolean} = addedTask;
+            props.addTask(taskId, taskText, activeBoolean);
+            setTask("")
         });
     });
     }
+
     return (
         <React.Fragment>
-        <label htmlFor="urgencyInput"></label>
-        <select value={urgency} onChange={(event) => setUrgency(event.target.value)} id="urgencyInput">
-            <option value="None">Urgency</option>
-            <option value="green">Low</option>
-            <option value="blue">Medium</option>
-            <option value="orange">High</option>
-            <option value="red">Critical</option>
-        </select>
         <label htmlFor="taskInput"></label>
         <input
             value={task}
+            placeholder="Add New Task"
             onChange={(event) => setTask(event.target.value)}
             id="taskInput"
         ></input>
@@ -61,7 +181,6 @@ function AddTheTask(props) {
 function TaskComplete(props) {
     const [reward, setReward] = React.useState('');
     const [target, setTarget] = React.useState('begin');
-    
     function deactivateTask() {
         fetch('/deactivate-task', {
             method: 'POST',
@@ -126,158 +245,6 @@ function TaskComplete(props) {
     );
  }
 
-// RETURNS ALL TASKS THAT SHOULD BE IN TASKLIST AND CONNECTS TO OUTLINE IN FIRST FUNCTION
-// ADDTASK FUNCTION TAKES DATA RETRIEVED FROM FETCH/FROM USER INPUT AND PUTS INSIDE TASKLIST WE WANT TO RETURN TO PAGE
-// ENDTASK FUNCTION ACCOUNTS FOR TASKS COMPLETED AND DELETED SO USEEFFECT CAN ONLY SHOW CURRENT TASKS
- function TaskList() {
-    const [tasks, setTasks] = React.useState([]);
-    const [rewards, setRewards] = React.useState([]);
-    const [ended, setEndTask] = React.useState([]);
-    const [added, setAdded] = React.useState([]);
-    const [taskComplete, setTaskComplete] = React.useState([]);
-    const [completed, setCompleted] = React.useState([]);
-    const [newAmount, setNewAmount] = React.useState([]);
-    const [amount, setAmount] = React.useState('');
-    const [showRewards, setShowRewards] = React.useState(false);
-    const [showLogout, setShowLogout] = React.useState(false);
-
-    const showRewardForum = () => { setShowRewards(true); setShowLogout(false) }
-    const showLogoutForum = () => { setShowLogout(true); setShowRewards(false) }
-
-
-    function addTask(taskId, task, urgency, active) {
-        const newTask= {taskId, task, urgency, active}; 
-        const currentTasks = [...tasks]; 
-        setTasks([...currentTasks, newTask]);
-    }
-    
-    function endTask(taskId, task, urgency, active) {
-        const currentEnded= {taskId, task, urgency, active}; 
-        const allEnded = [...ended]; 
-        setEndTask([...allEnded, currentEnded]);
-    }
-    
-    React.useEffect(() =>{
-        fetch('/tasks')
-            .then(response => response.json())
-            .then(result => setTasks(result.allTasks));
-    }, [ended]);
-
-    const addedTask = [];
-    // console.log(`tasks: `, tasks);
-    for (const currentTask of tasks) {
-        if (currentTask.active === true) {
-            addedTask.push(
-                <div key={currentTask.taskId}>
-                <TaskComplete
-                endTask={endTask}
-                amount={amount} 
-                taskId={currentTask.taskId}
-                completeTask={completeTask}
-                completed={completed}
-                /> 
-                <Task
-                taskId={currentTask.taskId}
-                task={currentTask.task}
-                urgency={currentTask.urgency}
-                />
-                <TaskDelete
-                endTask={endTask} 
-                taskId={currentTask.taskId}
-                />
-                </div>
-                );
-        
-        }
-    }
-
-    function editReward(rewardId, reward) {
-        const currentAdded= {rewardId, reward}; 
-        const allAdded = [...added]; 
-        setAdded([...allAdded, currentAdded]);
-    }
-
-    React.useEffect(() =>{
-        fetch('/reward')
-            .then(response => response.json())
-            .then(result => setRewards(result.allRewards));
-    }, [added]);
-
-    const listRewards = [];
-    // console.log(`rewards: `, rewards);
-    for (const currentReward of rewards) {
-            listRewards.push(
-                <div key={currentReward.rewardId}>
-                <MyReward
-                rewardId={currentReward.rewardId}
-                reward={currentReward.reward}
-                /> 
-                <RewardDelete
-                editReward={editReward} 
-                rewardId={currentReward.rewardId}
-                />
-                </div>
-                );
-        
-        }
-
-    function changedAmount(amount) {
-        const {changeAmount}= {amount}; 
-        setNewAmount([changeAmount]);
-    }
-
-    React.useEffect(() =>{
-        fetch('/amount')
-            .then(response => response.json())
-            .then(result => setAmount(result.afterCompleted));
-            console.log(amount);
-        }, [newAmount]); 
-
-    function completeTask(taskId, task, urgency, active) {
-        const {doneTask}= {taskId, task, urgency, active};
-        setTaskComplete([doneTask]);
-        } 
-
-    React.useEffect(() => {
-        fetch('/completed-tasks')
-            .then(response => response.json())
-            .then(result => setCompleted(result.completed));
-        }, [completeTask]);
-
-    return (
-        <React.Fragment>
-            <h1> Task List </h1>
-            <AddTheTask addTask={addTask}/>
-            <h2> Tasks </h2>
-            <div className="grid">{addedTask}</div>
-            <h2> Sidebar </h2>
-            <button onClick={showRewardForum}> Rewards </button>
-            { showRewards ? <ListRewards editReward={editReward} rewardList={listRewards} changedAmount={changedAmount}/> : null }
-            <button onClick={showLogoutForum}> Logout </button>
-            { showLogout ? <Logout /> : null }
-        </React.Fragment>
-    );
-}
-
-// LOG USER OUT
-
-function Logout() {
-
-    return (
-        <div>
-        <h3>Log out of Check? </h3>
-        <p>You can always log back in at any time. 
-        If you just want to switch accounts, you can do that by adding an existing account. </p>
-        <form action="/log-out" method="POST">
-	    <button submit="submit"> Log Out </button>
-        </form>
-        <form action="/home">
-	    <button submit="submit"> Cancel </button>
-        </form>
-        </div>
-    );
-    }
-
 // ASKS USER HOW MANY TASKS THEY WANT TO COMPLETE FOR REWARD
 function AmountForum(props) {
     const [amount, setAmount] = React.useState('')
@@ -295,6 +262,7 @@ function AmountForum(props) {
             const {amount: amountText}  = amountWantedDone;
             props.changedAmount(amountText);
             console.log(amount);
+            setAmount("")
             });
             }); 
             }
@@ -307,6 +275,7 @@ function AmountForum(props) {
     <label htmlFor="amountInput"></label>
         <input
             value={amount}
+            placeholder="New amount"
             onChange={(event) => setAmount(event.target.value)}
             id="amountInput"
         ></input>
@@ -356,16 +325,18 @@ function ListRewards(props) {
         const {rewardCreated} = jsonResponse;
         const {rewardId, reward: rewardText} = rewardCreated;
         props.editReward(rewardId, rewardText);
+        setReward("")
         });
     }); 
     }
     return (
-        <div>
-            <h2> Rewards </h2>
+    <div className="col-md-4">
+       <h2> Rewards </h2>
             <p> Add to your list of rewards </p>
             <label htmlFor="rewardInput"></label>
             <input
                 value={reward}
+                placeholder="Enter Reward"
                 onChange={(event) => setReward(event.target.value)}
                 id="rewardInput"
             ></input>
@@ -378,4 +349,6 @@ function ListRewards(props) {
         </div>
         );
 }
-ReactDOM.render(<TaskList />, document.getElementById('taskList'));
+
+
+ReactDOM.render( <TaskList/>, document.getElementById('taskList'));

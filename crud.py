@@ -15,6 +15,21 @@ def create_user(email, password, username, date_account_created, tasks_completed
     return user
 
 
+## EDIT USERS PROFILE PAGE
+def edit_profile(user_id, name= None, profile_picture= None):
+    get_user = User.query.filter_by(user_id = user_id).first()
+
+    if name is not None:
+        get_user.name = name
+    if profile_picture is not None:
+        get_user.profile_picture = profile_picture
+
+    db.session.add(get_user)
+    db.session.commit()
+
+    return get_user
+
+
 ## CHECK IF USER WITH THAT EMAIL ALREADY EXISTS
 
 def get_user_by_email(email):
@@ -36,10 +51,17 @@ def get_user_by_username(username):
     return User.query.filter_by(username = username).first()
 
 
+## CHECK IF USER BY USER ID
+
+def get_user(user_id):
+
+    return User.query.filter_by(user_id = user_id).first()
+
+
 ## CREATE TASK 
 
-def create_task(user_id, task, urgency, recurring = False, active = True):
-    task = Task(user_id = user_id, task = task, urgency = urgency, 
+def create_task(user_id, task, recurring = False, active = True):
+    task = Task(user_id = user_id, task = task, 
                 recurring = recurring, active = active)
 
 
@@ -327,16 +349,24 @@ def count_followers(user_id):
 ## SEARCH FOR USERS / POSTS / GROUPS
 
 def search_site(search):
-    result = [] 
-    result += User.query.filter(User.name.like(f'%{search}%')).all()
-    result += User.query.filter(User.username.like(f'%{search}%')).all()
-    result += Post.query.filter(Post.post.like(f'%{search}%')).all()
-    result += Post_Interactions.query.filter(Post_Interactions.comment.like(f'%{search}%')).all()
-    result += Comment_Interactions.query.filter(Comment_Interactions.comments_comment.like(f'%{search}%')).all()
+    result = []
 
-    return result 
+    user = User.query.filter(User.username.like(f'%{search}%')).all() + User.query.filter(User.name.like(f'%{search}%')).all()
+    result_posts = Post.query.filter(Post.post.like(f'%{search}%')).all()
+    all_posts = Post.query.options(db.joinedload('user_posts')).all()
+    posts = []
+    
+    for post in all_posts:
+        if post in result_posts:
+            posts.append([post.user_posts, post])
+            
 
+    result = [user, posts]
+    
 
+    return result
+    
+    
 
 
 if __name__ == '__main__':

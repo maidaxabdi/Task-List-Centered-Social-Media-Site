@@ -4,6 +4,13 @@ from model import connect_to_db
 import crud
 from jinja2 import StrictUndefined
 from datetime import datetime
+import os
+import cloudinary.uploader
+
+CLOUDINARY_KEY = os.environ['CLOUDINARY_KEY']
+CLOUDINARY_SECRET = os.environ['CLOUDINARY_SECRET']
+CLOUD_NAME = "check"
+
 
 app = Flask(__name__)
 app.secret_key = 'super secret key'
@@ -64,7 +71,7 @@ def current_user():
 @app.route("/home")
 def visit_home():
     
-    return render_template ('mainfeed.html')
+    return render_template ('base.html')
         
 
 @app.route("/log-out", methods=["POST"])
@@ -77,13 +84,11 @@ def log_out():
 @app.route("/add-task", methods=["POST"])
 def add_task():
     task = request.get_json().get("task")
-    urgency = request.get_json().get("urgency")
     user_id = crud.get_user_id(session['current_user'])
-    the_task = crud.create_task(user_id, task = task, urgency = urgency)
+    the_task = crud.create_task(user_id, task = task)
 
     new_task = {
         "task": task, 
-        "urgency": urgency,
         "taskId": the_task.task_id,
         "active": the_task.active,
     }
@@ -232,7 +237,7 @@ def delete_post():
     post_deleted = {
         "post": the_post.post, 
         "postTitle": the_post.post_title,
-        "postId": postId,
+        "postId": the_post.post_id,
     }
 
     crud.delete_post(postId, user_id)
@@ -251,6 +256,111 @@ def list_posts():
     
     
     return jsonify({"allPosts" : list_posts})
+
+
+@app.route("/edit-user",  methods=["POST"])
+def edit_profile():
+    user_id = crud.get_user_id(session['current_user'])
+    # name = request.form("usersName")
+    profile_picture = request.files['my-file']
+
+    if profile_picture:
+        result = cloudinary.uploader.upload(profile_picture,
+            api_key=CLOUDINARY_KEY,
+            api_secret=CLOUDINARY_SECRET,
+            cloud_name=CLOUD_NAME),
+        img_url = result['secure_url']
+   
+    crud.edit_profile(user_id, name, profile_picture = img_url)
+    
+    user_edited = {
+        "name": name,
+        "profile_picture": img_url,
+    }
+    return jsonify({"editedProfile" : user_edited})
+
+
+@app.route('/user-info')
+def show_user():
+    get_user = crud.get_user_by_email(session['current_user'])
+    get_user = {
+        "userId": get_user.user_id,
+        "name": get_user.name,
+        "profilePic": get_user.profile_picture,
+    }
+
+    return jsonify({"userInfo" : get_user})
+
+
+@app.route('/search',  methods=["POST"])
+def show_search(): 
+    search = request.get_json().get("search")
+    session['search'] = search
+    the_search = crud.search_site(search)
+
+    all_results = []
+    users = []
+    posts = []
+    if the_search[0]:
+        for result in the_search[0]:
+            users.append({
+                    "userId": result.user_id,
+                    "username": result.username,
+                })
+    
+    if the_search[1]:
+        for result in the_search[1]:
+            posts.append({
+                "posterUsername": result[0].username,
+                "theName": result[0].name,
+                "profilePic": result[0].profile_picture,
+                "postId": result[1].post_id,
+                "postTitle": result[1].post_title,
+                "post": result[1].post,
+                })
+
+    all_results = [users, posts]
+    return jsonify({"searchResponse" : all_results})
+
+
+@app.route('/user-details', methods=["POST"])
+def get_profile(): 
+    user_id = request.get_json().get("userResult")
+   
+    profileInformation = []
+    all_posts = []
+    userProfile = []
+
+    if user_id != '':
+    
+        user = crud.get_user(user_id)
+        posts = crud.list_posts(user_id)
+
+        userProfile.append({
+            "userId": user_id,
+            "profilePic": user.profile_picture,
+            "name": user.name,
+            "username": user.username,
+        })
+        for post in posts:
+            all_posts.append({
+            "postId": post.post_id,
+            "postTitle": post.post_title,
+            "post": post.post,
+            })
+
+
+        profileInformation = [userProfile, all_posts]
+
+    return jsonify({"Profile" : profileInformation})
+
+
+@app.route('/post-details')
+def get_post(): 
+    post_id = request.get_json().get("clickedResult")
+
+
+    return jsonify({"postDetails" : postInformation})
 
 
 if __name__ == "__main__":
