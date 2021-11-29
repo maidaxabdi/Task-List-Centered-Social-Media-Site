@@ -251,17 +251,23 @@ def list_posts():
     allPosts = crud.list_posts(user_id)
     list_posts = []
     
-    for the_post in allPosts:
-        list_posts.append({'post' : the_post.post, 'postTitle' : the_post.post_title, 'postId' : the_post.post_id})
+    for i in range(len(allPosts)):
+        list_posts.append({
+            'username': allPosts[i][0].username, 
+            'name': allPosts[i][0].name, 
+            'profilePic': allPosts[i][0].profile_picture, 
+            'post': allPosts[i][1].post, 
+            'postTitle' : allPosts[i][1].post_title, 
+            'postId' : allPosts[i][1].post_id, 
+            'postDate': allPosts[i][1].post_date_made})
     
     
     return jsonify({"allPosts" : list_posts})
 
 
-@app.route("/edit-user",  methods=["POST"])
+@app.route("/edit-pic",  methods=["POST"])
 def edit_profile():
     user_id = crud.get_user_id(session['current_user'])
-    # name = request.form("usersName")
     profile_picture = request.files['my-file']
 
     if profile_picture:
@@ -269,13 +275,28 @@ def edit_profile():
             api_key=CLOUDINARY_KEY,
             api_secret=CLOUDINARY_SECRET,
             cloud_name=CLOUD_NAME),
-        img_url = result['secure_url']
-   
-    crud.edit_profile(user_id, name, profile_picture = img_url)
+        print(result[0]['secure_url'])
+        img_url = result[0]['secure_url']
+    
+    user = crud.edit_profile(user_id, profile_picture = img_url)
+    user_edited = {
+        "userId": user_id,
+        "name": user.name,
+        "profile_picture": img_url,
+    }
+    return jsonify({"editedProfile" : user_edited})
+
+
+@app.route("/edit-user",  methods=["POST"])
+def edit_user():
+    user_id = crud.get_user_id(session['current_user'])
+    name = request.get_json().get("usersName")
+    
+    crud.edit_profile(user_id, name)
     
     user_edited = {
+        "userId": user_id,
         "name": name,
-        "profile_picture": img_url,
     }
     return jsonify({"editedProfile" : user_edited})
 
@@ -286,6 +307,7 @@ def show_user():
     get_user = {
         "userId": get_user.user_id,
         "name": get_user.name,
+        "username": get_user.username,
         "profilePic": get_user.profile_picture,
     }
 
@@ -306,17 +328,20 @@ def show_search():
             users.append({
                     "userId": result.user_id,
                     "username": result.username,
+                    "profilePic": result.profile_picture,
+                    "name": result.name,
                 })
     
     if the_search[1]:
         for result in the_search[1]:
             posts.append({
-                "posterUsername": result[0].username,
-                "theName": result[0].name,
+                "username": result[0].username,
+                "name": result[0].name,
                 "profilePic": result[0].profile_picture,
                 "postId": result[1].post_id,
                 "postTitle": result[1].post_title,
                 "post": result[1].post,
+                "postDate": result[1].post_date_made,
                 })
 
     all_results = [users, posts]
@@ -325,13 +350,13 @@ def show_search():
 
 @app.route('/user-details', methods=["POST"])
 def get_profile(): 
-    user_id = request.get_json().get("userResult")
-   
+    user_id = request.get_json("user")
+    
     profileInformation = []
     all_posts = []
     userProfile = []
 
-    if user_id != '':
+    if user_id:
     
         user = crud.get_user(user_id)
         posts = crud.list_posts(user_id)
@@ -344,9 +369,13 @@ def get_profile():
         })
         for post in posts:
             all_posts.append({
-            "postId": post.post_id,
-            "postTitle": post.post_title,
-            "post": post.post,
+            "username": post[0].username,
+            "name": post[0].name,
+            "profilePic": post[0].profile_picture,
+            "postId": post[1].post_id,
+            "postTitle": post[1].post_title,
+            "post": post[1].post,
+            "postDate": post[1].post_date_made,
             })
 
 
@@ -355,12 +384,77 @@ def get_profile():
     return jsonify({"Profile" : profileInformation})
 
 
-@app.route('/post-details')
+# @app.route('/post-details')
+# def get_post(): 
+#     post_id = request.get_json().get("clickedResult")
+
+
+#     return jsonify({"postDetails" : postInformation})
+
+
+@app.route('/follow-user', methods=["POST"])
+def follow_user(): 
+    follow_user_id = request.get_json("props.userId")
+    user_id = crud.get_user_id(session['current_user'])
+    following = crud.get_following(user_id)
+
+    follow_id = []
+
+    for person in following: 
+        follow_id.append(person.user_id)
+
+    following = []
+    if follow_user_id != user_id and follow_user_id not in follow_id:
+        followed = crud.follow_user(user_id, follow_user_id)
+
+        following.append({
+            "current_user_id": followed.user_id,
+            "profilePic": followed.profile_picture,
+            "name": followed.name,
+            "username": followed.username,
+            "following": followed.follow_user_id,
+            })
+    
+    return jsonify({"userFollowed" : following})
+
+
+@app.route('/following', methods=["POST"])
+def list_following(): 
+    user_id = request.get_json("props.userId")
+    print(user_id)
+    following = crud.get_following(user_id)
+
+    allFollowing = []
+
+    for person in following:
+        allFollowing.append({
+            "userId": person.user_id,
+            "profilePic": person.profile_picture,
+            "usersName": person.name,
+            "username": person.username, 
+        })
+    print(allFollowing)
+    return jsonify({"everyoneFollowed" : allFollowing})
+
+
+@app.route('/home-posts')
 def get_post(): 
-    post_id = request.get_json().get("clickedResult")
+    user_id = crud.get_user_id(session['current_user'])
 
-
-    return jsonify({"postDetails" : postInformation})
+    posts = crud.all_home_posts(user_id)
+    postInformation = []
+    
+    for i in range(len(posts)):
+        postInformation.append({
+            "username": posts[i][0].username,
+            "name": posts[i][0].name,
+            "profilePic": posts[i][0].profile_picture,
+            "postId": posts[i][1].post_id,
+            "postTitle": posts[i][1].post_title,
+            "post": posts[i][1].post,
+            "postDate": posts[i][1].post_date_made,
+        })
+    return jsonify({"allPosts" : postInformation})
 
 
 if __name__ == "__main__":

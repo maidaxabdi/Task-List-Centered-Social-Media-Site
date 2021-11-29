@@ -3,9 +3,13 @@ function SideBar() {
     const [showSearch, setShowSearch] = React.useState(false);
     const [showLogout, setShowLogout] = React.useState(false);
     const [showProfile, setShowProfile] = React.useState(false);
-    const showLogoutForum = () => { setShowLogout(true); setShowSearch(false); setShowProfile(false) }
-    const showSearchResults = () => { setShowSearch(true); setShowLogout(false); setShowProfile(false) }
-    const showProfilePage= () => { setShowProfile(true); setShowLogout(false); setShowSearch(false) }
+    const [showHome, setShowHome] = React.useState(true);
+
+    const showLogoutForum = () => { setShowHome(false); setShowLogout(true); setShowSearch(false); setShowProfile(false) }
+    const showSearchResults = () => { setShowHome(false); setShowSearch(true); setShowLogout(false); setShowProfile(false) }
+    const showProfilePage= () => { setShowHome(false); setShowProfile(true); setShowLogout(false); setShowSearch(false) }
+    
+    const showHomePage= () => { setShowHome(true); setShowProfile(false); setShowLogout(false); setShowSearch(false) }
   
     const [searchPost, setSearchPost] = React.useState([]);
     const [searchUser, setSearchUser] = React.useState([]);
@@ -32,7 +36,8 @@ function SideBar() {
      }
      
 
-
+     console.log(searchUser)
+     console.log(searchPost)
     return (
         <React.Fragment>
         <h2> Sidebar </h2>  
@@ -42,7 +47,9 @@ function SideBar() {
             { showProfile ? <UserProfile /> : null }
             <button onClick={showLogoutForum}> Logout </button>
             { showLogout ? <Logout /> : null }
-           
+            <button onClick={showHomePage}> Home </button>
+            { showHome ? <Home /> : null}
+
         </React.Fragment>
     )
 }
@@ -56,27 +63,31 @@ function Post(props) {
     // Post text
     // time of post and date of post
     // amount of likes
+    // console.log(props.profilePic)
+    // console.log(props.name)
     return (
-        <span className="post">
-            <p> {props.name} {props.username} </p>
+        <div className="post"> 
+            <img className="resize"  src={props.profilePic}/>
+                    <span >{props.name} </span>
+                    <span> {props.username} </span>
             <h4> {props.postTitle} </h4>
                     {props.post} 
-            <p> {props.dateTime} </p>
-        </span>
+            <p> {props.postDate} </p>
+        </div>
     );
 }
 
-function UsersProfile(props) {
-    return (
-        <div className="profile">
-            {props.profilePic}
-            {props.usersName}
-            {props.name}
-            {props.posts}
-            {props.likes}
-        </div>
-    )
-}
+// function UsersProfile(props) {
+//     return (
+//         <div className="profile">
+//             {/* <img className="resize"  src={props.profilePic}/> */}
+//             <span> {props.username} </span>
+//             <span> {props.name} </span>
+//             {props.posts}
+//             {props.likes}
+//         </div>
+//     )
+// }
 
 // CREATE A NEW POST
 function AddPosts(props) {
@@ -166,12 +177,14 @@ function UserProfile() {
 
     const prof = (
         <div key={userInfo.userId}>
-            <UsersProfile
-                usersName={userInfo.userName}
+            <UserHeader
+                name={userInfo.name}
+                username={userInfo.username}
                 profilePic={userInfo.profilePic}
             />
         </div>
     );
+
     
     function userEdited(userId, usersName, profilePic) {
         const newEdit= {userId, usersName, profilePic}; 
@@ -204,9 +217,13 @@ function UserProfile() {
         addedPosts.push(
             <div key={currentPost.postId}>
             <Post
+            profilePic={currentPost.profilePic}
+            username={currentPost.username}
+            name={currentPost.name}
             postId={currentPost.postId}
             postTitle={currentPost.postTitle}
             post={currentPost.post}
+            postDate={currentPost.postDate}
             />
             <PostDelete
             postId={currentPost.postId}
@@ -216,7 +233,7 @@ function UserProfile() {
             );
         }
 
-        
+        console.log(addedPosts)
     return (
         <React.Fragment>
         <Profile addPost={addPost} userEdited={userEdited} addedPosts={addedPosts} prof={prof}/>
@@ -225,18 +242,13 @@ function UserProfile() {
 }
 
 function Profile(props) {
-    // const [showEdit, setShowEdit] = React.useState(false)
-    // const showEditForum = () => { setShowEdit(true) }
+    const [showEdit, setShowEdit] = React.useState(false)
+    const showEditForum = () => { setShowEdit(true) }
 
     return (
-        <React.Fragment>
-        <h2> Show logged in user profile picture, name, username, and edit option to change any of those (maybe bio too?) </h2>
+        <React.Fragment> 
         <div className="grid"> {props.prof} </div>
-        {/* <button onClick={showEditForum}> Edit profile </button>
-         {showEdit? <EditProfile userEdited={props.userEdited} /> : null }  */}
-        <p> logged in user FOLLOWERS and FOLLOWING count and if you click on it you can see pictures/bios/usernames of other users. 
-            Can click on those and redirect to those users profile page </p>
-        <p> List of users posts and if you click a button can see all of users liked posts  </p>
+        <EditProfile userEdited={props.userEdited} /> 
         <h2> Posts </h2>
         <AddPosts addPost={props.addPost}/>
         <div className="grid"> {props.addedPosts} </div>
@@ -244,91 +256,97 @@ function Profile(props) {
     )
 }
 
-// function EditProfile() {
-//     const [usersName, setUsersName] = React.useState('');
-//     const [previewSource, setPreviewSource] = React.useState('');
+function EditProfile(props) {
+    const [usersName, setUsersName] = React.useState('');
+    const [previewSource, setPreviewSource] = React.useState('');
+    const [showEdit, setShowEdit] = React.useState(false)
 
-//     const editProfile = () => {
-//             formData.append('usersName', usersName)
-//             fetch('/edit-user', {
-//             method: 'POST',
-//             body: formData, 
-//         }).then(response => {
-//             response.json().then(jsonResponse => {
-//             const {userEdited} = jsonResponse;
-//             const {userId, name: nameText, profilePic: profilePicImg} = userEdited;
-//             props.userEdited(userId, nameText, profilePicImg);
-//             });
-//         });
-//      }
+    const ShowEditChange = () => {setShowEdit(!showEdit)}
 
-//     const formData = new FormData();
-//     const reader = new FileReader()
+    const editProfile = () => {
+        console.log(formData.get('my-file'))
+            fetch('/edit-pic', {
+            method: 'POST',
+            body: formData, 
+        }).then(response => {
+            response.json().then(jsonResponse => {
+            const {editedProfile} = jsonResponse;
+            console.log(editedProfile)
+            const {userId: userIdText,  name: nameText, profilePic: profilePicImg} = editedProfile;
+            props.userEdited(userIdText, nameText, profilePicImg);
+            });
+        });
+     }
+
+    const formData = new FormData();
+    const reader = new FileReader()
      
-//     const whenPicChanges = (e) => {
-//          const file = e.target.files[0];
-//          formData.append('my-file', file)
-//          previewFile(file);
-//      }
-//      const previewFile = file => {
-//         reader.readAsDataURL(file);
-//         reader.onloadend = () => {
-//             setPreviewSource(reader.result)
-//         }
-//     }
+    const whenPicChanges = (e) => {
+         const file = e.target.files[0];
+         console.log(file)
+         formData.append('my-file', file)
+         console.log(formData.get('my-file'))
+         formData.append('name', usersName)
+         editProfile()
+         previewFile(file);
+     }
 
-
-//     return (
-//         <React.Fragment> 
-//         <button onClick={editProfile}> save </button>
-//         <p> Header </p>
-//         <p> Profile Pic </p>
-//         <input
-//             type="file"
-//             accept="image/*"
-//             name="my-file"
-//             onChange={(e) => whenPicChanges(e)}
-//         ></input>
-//         {previewSource && (
-//             <img src={previewSource} alt="chosen" />
-//             )}
-//         <p> Name </p>
-//         <label htmlFor="nameInput"></label>
-//         <input
-//             name="usersName"
-//             type="text"
-//             value={usersName}
-//             onChange={(event) => setUsersName(event.target.value)}
-//             id="userNameInput"
-//         ></input>
-
-//         <p> Bio </p>
-//         </React.Fragment>
-//     );
-// }
-
-/////////////////////////////////////////////////////////////////////////////// SEARCH ////////////////////////////////////////////////////
-function User(props) {
+     const previewFile = file => {
+        reader.readAsDataURL(file);
+        reader.onloadend = () => {
+            setPreviewSource(reader.result)
+        }
+    }
+    const editUser = () => {
+        ShowEditChange()
+        console.log(usersName)
+            fetch('/edit-user', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+              },
+            body: JSON.stringify({usersName}), 
+        }).then(response => {
+            response.json().then(jsonResponse => {
+            const {editedProfile} = jsonResponse;
+            console.log(editedProfile)
+            const {userId: userIdText, name: nameText} = editedProfile;
+            props.userEdited(userIdText, nameText);
+            });
+        });
+     }
     return (
-        <span className="user">
-            {props.profilePic}
-            {props.name}
-            {props.username}
-            {props.bio}
-        </span>
-    );
-} 
-
-function Post(props) {
-    return (
-        <span className="post">
-            <p> {props.name} {props.username} </p>
-            <h4> {props.postTitle} </h4>
-                    {props.post} 
-            <p> {props.dateTime} </p>
-        </span>
+        <React.Fragment> 
+        <button onClick={ShowEditChange}> Edit profile </button>
+        {showEdit ?
+        <div>
+        <button onClick={editUser}> save </button> 
+        <p> Profile Pic </p>
+        <input
+            type="file"
+            accept="image/*"
+            name="my-file"
+            onChange={(e) => whenPicChanges(e)}
+        ></input>
+        {previewSource && (
+            <img src={previewSource} alt="chosen" />
+            )}
+        <p> Name </p>
+        <label htmlFor="nameInput"></label>
+        <input
+            name="usersName"
+            type="text"
+            value={usersName}
+            onChange={(e) => setUsersName(e.target.value)}
+            id="userNameInput"
+        ></input>
+        </div>
+        : null }
+        </React.Fragment>
     );
 }
+
+/////////////////////////////////////////////////////////////////////////////// SEARCH ////////////////////////////////////////////////////
 
 
 function SearchBar(props) {
@@ -348,6 +366,8 @@ function SearchBar(props) {
             const {searchResponse} = jsonResponse;
             props.userSearch(searchResponse[0]);
             props.postSearch(searchResponse[1]);
+            console.log(searchResponse[0])
+            console.log(searchResponse[1])
         });
     });
     }
@@ -373,31 +393,12 @@ function SearchBar(props) {
 function SearchResults(props) {
     const [userResult, setUserResult] = React.useState('')
     const [postResult, setPostResult] = React.useState('')
-    const isMountRef = React.useRef(false);
     const [showProfile, setShowProfile] = React.useState(false)
     const [showResults, setShowResults] = React.useState(true)
 
-    const showTheProfile = () => { setShowProfile(true); setShowResults(false) }
-  
-    const UserDetails = () =>  {
-        fetch('/user-details', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({userResult}),
-        }).then(response => {
-            response.json().then(jsonResponse => {
-                console.log(jsonResponse)
-                const {Profile} = jsonResponse
-                console.log(Profile[1])
-                console.log(Profile[0])
-                props.checkPosts(Profile[1]);
-                props.checkProfile(Profile[0]);
-        });
-    });
+    const showTheProfile = () => {
+         setShowProfile(true); setShowResults(false) 
     }
-
     // function PostDetails() {
     //     fetch('/further-details', {
     //     method: 'POST',
@@ -415,54 +416,145 @@ function SearchResults(props) {
     // UserDetails()
 
 
-
-    React.useEffect(() => {
-        isMountRef.current = true;
-        }, []);
-
-    React.useEffect(() => {
-        if (isMountRef) {
-            UserDetails()
-            console.log(userResult)
-        }}, [userResult]);
-
- 
-   
     return (
         <div>
-        { showResults ? 
-        <div><div>
+        {  showResults ?
+        <div>
+            <div>
                 {props.searchUser.map(result => {
                     return (
                         <div key={result.userId} 
                             onClick={() => {{setUserResult(result.userId)}; {showTheProfile()}}} >
-                                <User
-                                username={result.username} />
+                                <UserHeader
+                                username={result.username} 
+                                name={result.name}
+                                profilePic={result.profilePic}
+                                />
                                 </div>
                                 );
                             })}
-                        </div><div>
+                        </div>
+                        <div>
                 {props.searchPost.map(result => {
                     return (
                         <div key={result.postId} onClick={() => setPostResult(result.postId)}>
                             <Post
                             postTitle={result.postTitle}
-                            post={result.post} />
+                            post={result.post} 
+                            username={result.username}
+                            profilePic={result.profilePic}
+                            name={result.name}
+                            postDate={result.postDate}
+                            />
                             </div>
                             );
                             })}
                         </div></div>
-    : null }
-    { showProfile ? <OtherUsers seePosts={props.seePosts} seeProfile={props.seeProfile} /> : null }
+                    : null}
+    { showProfile ? <UserDetails userResult={userResult} checkPosts={props.checkPosts} checkProfile={props.checkProfile}  seePosts={props.seePosts} seeProfile={props.seeProfile} /> : null }
     </div>
     );
 }
 
 ///////////////////////////////////////////////////////// OTHER USERS ////////////////////////////////////////////////////////////
+function UserHeader (props) {
+    return (
+        <div className="user">
+            <img className="resize" src={props.profilePic}/>
+            <span> {props.name} </span>
+            <span> {props.username} </span>
+            {props.bio}
+        </div>
+    );
+}
 
-function OtherUsers(props) {
-    console.log('Hello from OtherUsers')
-    if (props.seePosts && props.seeProfile) {
+function User(props) {
+    const [added, setAdded] = React.useState([])
+    const [followed, setFollowed] = React.useState([])
+    const [showProfile, setShowProfile] = React.useState(false)
+    
+
+    const following = (userFollowed) => {
+        setAdded(userFollowed)
+    }
+
+    const allFollowing = (userFollowed) => {
+        setFollowed(userFollowed)
+    }
+    const [seePosts, setSeePosts] = React.useState([])
+    const [seeProfile, setSeeProfile] = React.useState([])
+
+    const checkProfile = (profileResponse) => {
+    setSeeProfile(profileResponse);
+    }
+    
+    const checkPosts = (postResponse) => {
+        setSeePosts(postResponse);
+    }
+
+
+    return (
+        <div>
+        <div className="user">
+            <img className="resize"  src={props.profilePic}/>
+            {props.name}
+            {props.username}
+            {props.bio}
+            <FollowUser
+            following={following}
+            userId={props.userId}/>
+            <RetrieveFollowed 
+            checkPosts={checkPosts} 
+            checkProfile={checkProfile} 
+            seePosts={seePosts} 
+            seeProfile={seeProfile}
+            userId={props.userId}
+            allFollowing={allFollowing}
+            followed={followed}/>
+        </div>
+        </div>
+    );
+} 
+
+function UserDetails(props) {
+    const isMountRef = React.useRef(false);
+    
+    let user;
+    if (props.userResult) {
+        user = props.userResult;
+    }
+    else if (props.userResultFollowing) {
+        user = props.userResultFollowing;
+    }
+   
+    const UserDetail = () =>  {
+        fetch('/user-details', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: user,
+            }).then(response => {
+            response.json().then(jsonResponse => {
+                console.log(jsonResponse)
+                const {Profile} = jsonResponse
+                console.log(Profile[1])
+                console.log(Profile[0])
+                props.checkPosts(Profile[1]);
+                props.checkProfile(Profile[0]);
+            });
+            });
+    }
+
+    React.useEffect(() => {
+        isMountRef.current = true}, []);
+
+    React.useEffect(() => {
+        if (isMountRef && props.seeProfile && props.seePosts) {
+            console.log('here')
+            UserDetail()
+        }}, []);
+        
     return (
         <div>
         {props.seeProfile.map(result => {
@@ -470,6 +562,9 @@ function OtherUsers(props) {
             <div key={result.userId}>
                 <User 
                 username={result.username}
+                userId={result.userId}
+                profilePic={result.profilePic}
+                name={result.name}
                 />
             </div>
             )
@@ -478,8 +573,12 @@ function OtherUsers(props) {
             return (
             <div key={result.postId}>
                  <Post 
+                name={result.name}
+                profilePic={result.profilePic}
+                username={result.username}
                 postTitle={result.postTitle}
                 post={result.post}
+                postDate={result.postDate}
                 />
             </div>
             )
@@ -487,11 +586,138 @@ function OtherUsers(props) {
         </div>
     );
     }
-    else {
-    return null
-    }
+
+function FollowUser(props) {
+    const [follow, setFollow] = React.useState("Follow")
+    const [followed, setFollowed] = React.useState(false)
+
+    function followThem() {
+        fetch('/follow-user', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+              },
+              body: props.userId,
+        }).then(response => {
+            response.json().then(jsonResponse => {
+            const {userFollowed} = jsonResponse;   
+            console.log(userFollowed)
+            props.following(userFollowed) 
+        });
+    }); 
     }
 
+    // function handleFollow() {
+    //     followThem()
+    //     setFollow("Following")
+    // }
+    // function handleUnfollow() {
+    //     setFollow("Follow")
+    // }
+
+    // function UnFollow() {
+
+    // }
+    
+    return (
+        <button value={props.userId} onClick={() => {setFollowed(!followed); {followThem()}}}>
+            {followed ? 'Following' : 'Follow'}
+        </button>
+    );
+}
+
+function RetrieveFollowed(props) {
+    const isMountRef = React.useRef(false);
+    const [userResultFollowing, setUserResultFollowing] = React.useState('')
+
+    const [showProfile, setShowProfile] = React.useState(false)
+    const [showResults, setShowResults] = React.useState(true)
+
+    const showTheProfile = () => {
+         setShowProfile(true); setShowResults(false) 
+    }
+    const showTheResults = () => {
+        setShowProfile(false); setShowResults(true) 
+   }
+
+    function Following() {
+        fetch('/following', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+              },
+              body: props.userId,
+        }).then(response => {
+            response.json().then(jsonResponse => {
+            const {everyoneFollowed} = jsonResponse;   
+            console.log(everyoneFollowed)
+            props.allFollowing(everyoneFollowed) 
+        });
+    }); 
+    }
+    React.useEffect(() => {
+        isMountRef.current = true;
+        }, []);
+
+    React.useEffect(() => {
+        if (isMountRef) {
+            showTheResults()
+        }}, []);
+
+    console.log(showProfile)
+    console.log(showResults)
+    return (
+        <div>
+        <button onClick={Following}> Following </button>
+        { showResults ?
+        <div>
+        {props.followed.map(result => {
+            return (
+            <div key={result.userId} onClick={() => {setUserResultFollowing(result.userId); showTheProfile()}}>
+                <UserHeader
+                username={result.username}
+                profilePic={result.profilePic}
+                name={result.name}
+                />
+            </div>
+            )
+            })}
+        </div>
+        : null}
+        {showProfile ? <UserDetails userResultFollowing={userResultFollowing} checkPosts={props.checkPosts} checkProfile={props.checkProfile} seePosts={props.seePosts} seeProfile={props.seeProfile}/> : console.log('Cant do')}
+        </div>
+    );
+}
+
+//////////////////////////////////////////////////////// HOME /////////////////////////////////////////////////////////////
+
+function Home() {
+    const [posts, setPosts] = React.useState([])
+    React.useEffect(() =>{
+        fetch('/home-posts')
+            .then(response => response.json())
+            .then(result => setPosts(result.allPosts));
+    }, []);
+
+    return (
+        <div>
+        {posts.map(result => {
+            return (
+            <div key={result.postId}>
+                <Post
+                    postTitle={result.postTitle}
+                    post={result.post} 
+                    username={result.username}
+                    profilePic={result.profilePic}
+                    name={result.name}
+                    postDate={result.postDate}
+                />
+            </div>
+            )
+            })}
+        </div>
+    );
+}
 function Logout() {
 
     return (

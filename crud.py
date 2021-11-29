@@ -1,6 +1,6 @@
 from model import Comment_Interactions, db, User, Task, Reminder, Reward, Follow, Post, Post_Interactions, Group, User_Group, connect_to_db
 from random import choice 
-
+from datetime import datetime
 
 ## CREATE USER 
 
@@ -219,8 +219,42 @@ def get_post(postId, user_id):
 
 def list_posts(user_id):
     get_posts = Post.query.filter(Post.user_id == user_id).all()
+    all_posts = Post.query.options(db.joinedload('user_posts')).all()
+    posts = []
     
-    return get_posts
+    for post in all_posts:
+        if post in get_posts:
+            posts.append([post.user_posts, post])
+
+    sorted_list = sorted(posts, key=lambda t: t[1].post_date_made)
+    sorted_list.reverse()
+    return sorted_list
+
+
+def all_home_posts(user_id):
+    get_posts = Post.query.filter(Post.user_id == user_id).all()
+    all_posts = Post.query.options(db.joinedload('user_posts')).all()
+    posts = []
+
+    user = User.query.filter_by(user_id = user_id).first()
+    following_posts = []
+
+    for i in range(len(user.follows)):
+        following_posts.append(user.follows[i].posts)
+
+
+    for post in all_posts:
+        if post in get_posts:
+            posts.append([post.user_posts, post])
+    
+    for user in following_posts:
+        for post in user:
+            if post in all_posts:
+                posts.append([post.user_posts, post])
+
+    sorted_list = sorted(posts, key=lambda t: t[1].post_date_made)
+    sorted_list.reverse()
+    return sorted_list
 
 
 ## DELETE POST BY POST ID
@@ -293,7 +327,7 @@ def users_in_group(group_id):
 ## FOLLOW USER
 
 def follow_user(user_id, follow_user_id):
-    follow_user = User(user_id = user_id, follow_user_id = follow_user_id)
+    follow_user = Follow(user_id = user_id, follow_user_id = follow_user_id)
 
     db.session.add(follow_user)
     db.session.commit()
@@ -301,20 +335,12 @@ def follow_user(user_id, follow_user_id):
     return follow_user
 
 
-## FOLLOW ANOTHER USER
-
-def follow_user(user_id, follow_user_id):
-    follow_user = Follow(user_id = user_id, follow_user_id = follow_user_id)
-
-    return follow_user
-
-
 ## RETURN LIST OF FOLLOWING
 
 def get_following(user_id):
-    users_following = Follow.query.filter(Follow.user_id == user_id).group_by(Follow.follow_user_id).all()
-   
-    return users_following
+    user = User.query.filter_by(user_id = user_id).first()
+
+    return user.follows
 
 
 ## RETURN LIST OF FOLLOWERS
@@ -351,7 +377,7 @@ def count_followers(user_id):
 def search_site(search):
     result = []
 
-    user = User.query.filter(User.username.like(f'%{search}%')).all() + User.query.filter(User.name.like(f'%{search}%')).all()
+    user = User.query.filter(User.username.like(f'%{search}%') | User.name.like(f'%{search}%')).all()
     result_posts = Post.query.filter(Post.post.like(f'%{search}%')).all()
     all_posts = Post.query.options(db.joinedload('user_posts')).all()
     posts = []
@@ -361,13 +387,12 @@ def search_site(search):
             posts.append([post.user_posts, post])
             
 
-    result = [user, posts]
-    
-
+    sorted_list = sorted(posts, key=lambda t: t[1].post_date_made)
+    sorted_list.reverse()
+    result = [user, sorted_list]
+    print(result)
     return result
     
-    
-
 
 if __name__ == '__main__':
     from server import app
