@@ -74,7 +74,7 @@ def visit_home():
     return render_template ('base.html')
         
 
-@app.route("/log-out")
+@app.route("/log-out", methods=['POST'])
 def log_out():
     session.pop('current_user')
     return redirect ('/')

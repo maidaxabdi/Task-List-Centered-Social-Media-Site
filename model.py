@@ -26,7 +26,9 @@ class User(db.Model):
     name = db.Column(db.String(50))
     email = db.Column(db.String, nullable = False, unique = True)
     password = db.Column(db.String(50), nullable = False)
+    bio = db.Column(db.String(110))
     is_private = db.Column(db.Boolean)
+    header = db.Column(db.String)
     profile_picture = db.Column(db.String)
     tasks_completed = db.Column(db.Integer)
     date_account_created = db.Column(db.DateTime)
@@ -106,6 +108,7 @@ class Post(db.Model):
     post_date_made = db.Column(db.DateTime)
     is_private = db.Column(db.Boolean)
     post_title = db.Column(db.String(140), nullable = False)
+    picture = db.Column(db.String)
 
     user_posts = db.relationship("User", backref="posts")
 
@@ -214,7 +217,7 @@ def example_data():
     Ron = User(email='ron@test.com', username='ron', password="test1")
     Hermione = User(email='hermione@test.com', username='hermione', password="test2")
     Draco = User(email='draco@test.com', username='draco', password="test3")
-
+    
     db.session.add_all([Harry, Ron, Hermione, Draco])
     db.session.commit()
 

@@ -12,7 +12,12 @@ class FlaskTestsBasic(TestCase):
         app.config['TESTING'] = True
         app.config['SECRET_KEY'] = 'testing123'
 
-        connect_to_db(app)
+        connect_to_db(app, "postgresql:///testdb")
+
+    def tearDown(self):
+
+        db.session.close()
+        db.drop_all()
 
     def test_home(self):
 
@@ -93,9 +98,9 @@ class FlaskTestsLoggedIn(TestCase):
 
     def test_logout(self):
         result = self.client.get('/log-out', follow_redirects = True)
-        self.assertIn(b"Check", result.data)
+        self.assertIn(b"check", result.data)
 
-        
+
 if __name__ == "__main__":
     import unittest
 

@@ -12,7 +12,6 @@ model.db.create_all()
 
 ## FAKE DATA
 
-urgency_level = ['urgent', 'medium urgency', 'daily task']
 random_task = ['clean house', 'take trash outside', 'doing homework']
 choose_reward = ['book a plane ticket', 'go to a fancy resturant', 'buy a new dress']
 reminder_choose = ['remember to go to the gym', 'remember to start journaling', 'remember to start wearing makeup again']
@@ -29,10 +28,9 @@ for n in range(10):
     date_account_created = datetime.now().replace(second=0, microsecond=0)
     user = crud.create_user(email, password, username, date_account_created)
     
-    urgency = choice(urgency_level)
     task = choice(random_task)
     user_id = user.user_id
-    crud.create_task(user_id, task, urgency)
+    crud.create_task(user_id, task)
 
     reward = choice(choose_reward)
     crud.create_reward(user_id, reward)
