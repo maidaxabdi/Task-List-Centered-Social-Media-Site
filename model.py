@@ -205,6 +205,20 @@ class User_Group(db.Model):
         return f'<User_Group user_group_id={self.user_group_id}>'
 
 
+def example_data():
+    """Create some sample data."""
+
+    User.query.delete()
+
+    Harry = User(email='harry@test.com', username='harry', password="test0")
+    Ron = User(email='ron@test.com', username='ron', password="test1")
+    Hermione = User(email='hermione@test.com', username='hermione', password="test2")
+    Draco = User(email='draco@test.com', username='draco', password="test3")
+
+    db.session.add_all([Harry, Ron, Hermione, Draco])
+    db.session.commit()
+
+
 if __name__ == "__main__":
     from server import app
 

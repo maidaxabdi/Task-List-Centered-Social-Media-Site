@@ -681,8 +681,8 @@ function RetrieveFollowed(props) {
                 />
             </div>
             )
-            })}
-        </div>
+            })} 
+        </div> 
         : null}
         {showProfile ? <UserDetails userResultFollowing={userResultFollowing} checkPosts={props.checkPosts} checkProfile={props.checkProfile} seePosts={props.seePosts} seeProfile={props.seeProfile}/> : console.log('Cant do')}
         </div>
