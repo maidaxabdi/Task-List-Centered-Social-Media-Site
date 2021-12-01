@@ -4,10 +4,10 @@ from datetime import datetime
 
 ## CREATE USER 
 
-def create_user(email, password, username, date_account_created, tasks_completed = 30, name = None, profile_picture = None, is_private = False):
+def create_user(email, password, username, date_account_created, tasks_completed = 30, name = None, bio = None, profile_picture = None, is_private = False, header=None):
     user = User(email=email, password=password, username = username, 
                 tasks_completed = tasks_completed, name = name, profile_picture = profile_picture, 
-                is_private = is_private, date_account_created = date_account_created)
+                is_private = is_private, date_account_created = date_account_created, bio=bio, header=header)
 
     db.session.add(user)
     db.session.commit()
@@ -16,16 +16,21 @@ def create_user(email, password, username, date_account_created, tasks_completed
 
 
 ## EDIT USERS PROFILE PAGE
-def edit_profile(user_id, name= None, profile_picture= None):
+def edit_profile(user_id, profile_picture, username, name, bio):
     get_user = User.query.filter_by(user_id = user_id).first()
 
-    if name is not None:
-        get_user.name = name
-    if profile_picture is not None:
-        get_user.profile_picture = profile_picture
+    props = {
+            'name': name,
+            'username': username,
+            'profile_picture': profile_picture,
+            'bio': bio,
+        }
 
-    db.session.add(get_user)
+    for key, value in props.items():
+        setattr(get_user, key, value)
+
     db.session.commit()
+    db.session.flush()
 
     return get_user
 
@@ -55,7 +60,8 @@ def get_user_by_username(username):
 
 def get_user(user_id):
 
-    return User.query.filter_by(user_id = user_id).first()
+    user = User.query.filter_by(user_id = user_id).first()
+    return user
 
 
 ## CREATE TASK 
@@ -198,8 +204,8 @@ def create_reminder(user_id, reminder):
 
 ## CREATE POST
 
-def create_post(user_id, post, post_date_made, post_title, is_private = False):
-    post = Post(user_id = user_id, post = post, post_date_made = post_date_made, is_private = is_private, post_title = post_title)
+def create_post(user_id, post, post_date_made, post_title, picture= None, is_private = False):
+    post = Post(user_id = user_id, post = post, post_date_made = post_date_made, is_private = is_private, picture = picture, post_title = post_title)
     
     db.session.add(post)
     db.session.commit()
@@ -209,10 +215,16 @@ def create_post(user_id, post, post_date_made, post_title, is_private = False):
 
 ## GET POST BY POST ID
 
-def get_post(postId, user_id):
+def get_post(user_id, postId):
     get_post = Post.query.filter(Post.post_id == postId and Reward.user_id == user_id).first()
+    all_posts = Post.query.options(db.joinedload('user_posts')).all()
+    posts = []
+    
+    for post in all_posts:
+        if post == get_post:
+            posts.append([post.user_posts, post])
 
-    return get_post
+    return posts
 
 
 ## RETURN LIST OF POSTS

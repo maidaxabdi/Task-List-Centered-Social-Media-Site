@@ -218,10 +218,14 @@ def new_post():
     post_date_made = datetime.now().replace(second=0, microsecond=0)
     the_post = crud.create_post(user_id, post, post_date_made, post_title)
     
+    posts = crud.get_post(user_id, postId = the_post.post_id)
     thePost = {
         "post": post,
         "postTitle": post_title,
-        "postId": the_post.post_id,
+        "postId": posts[0][1].post_id,
+        "profilePic": posts[0][0].profile_picture,
+        "username": posts[0][0].username,
+        "name": posts[0][0].name,
     }
 
     return jsonify({"createdPost" : thePost})
@@ -259,17 +263,17 @@ def list_posts():
             'postTitle' : allPosts[i][1].post_title, 
             'postId' : allPosts[i][1].post_id, 
             'postDate': allPosts[i][1].post_date_made})
-    
-    
+
     return jsonify({"allPosts" : list_posts})
 
 
 @app.route("/edit-pic",  methods=["POST"])
 def edit_profile():
     user_id = crud.get_user_id(session['current_user'])
+    user = crud.get_user(user_id)
     profile_picture = request.files['my-file']
 
-    if profile_picture:
+    if profile_picture != user.bio:
         result = cloudinary.uploader.upload(profile_picture,
             api_key=CLOUDINARY_KEY,
             api_secret=CLOUDINARY_SECRET,
@@ -277,12 +281,20 @@ def edit_profile():
         print(result[0]['secure_url'])
         img_url = result[0]['secure_url']
     
-    user = crud.edit_profile(user_id, profile_picture = img_url)
+    profile_picture = img_url
+    username = user.username
+    name = user.name
+    bio = user.bio
+
+    crud.edit_profile(user_id, profile_picture, username, name, bio)
     user_edited = {
         "userId": user_id,
-        "name": user.name,
-        "profile_picture": img_url,
+        "profilePic": img_url,
+        "name": name,
+        "bio": bio,
+        "username": username,
     }
+
     return jsonify({"editedProfile" : user_edited})
 
 
@@ -290,27 +302,36 @@ def edit_profile():
 def edit_user():
     user_id = crud.get_user_id(session['current_user'])
     name = request.get_json().get("usersName")
-    
-    crud.edit_profile(user_id, name)
+    username = request.get_json().get("username")
+    bio = request.get_json().get("userBio")
+
+    user = crud.get_user(user_id)
+    profile_picture = user.profile_picture
+
+    crud.edit_profile(user_id, profile_picture, username, name, bio)
     
     user_edited = {
         "userId": user_id,
         "name": name,
+        "bio": bio,
+        "username": username,
     }
+
     return jsonify({"editedProfile" : user_edited})
 
 
 @app.route('/user-info')
 def show_user():
     get_user = crud.get_user_by_email(session['current_user'])
-    get_user = {
+    get_info = {
         "userId": get_user.user_id,
         "name": get_user.name,
         "username": get_user.username,
         "profilePic": get_user.profile_picture,
+        "bio": get_user.bio,
     }
 
-    return jsonify({"userInfo" : get_user})
+    return jsonify({"userInfo" : get_info})
 
 
 @app.route('/search',  methods=["POST"])
@@ -408,9 +429,6 @@ def follow_user():
 
         following.append({
             "current_user_id": followed.user_id,
-            "profilePic": followed.profile_picture,
-            "name": followed.name,
-            "username": followed.username,
             "following": followed.follow_user_id,
             })
     
@@ -420,6 +438,7 @@ def follow_user():
 @app.route('/following', methods=["POST"])
 def list_following(): 
     user_id = request.get_json("props.userId")
+    
     print(user_id)
     following = crud.get_following(user_id)
 
@@ -433,6 +452,28 @@ def list_following():
             "username": person.username, 
         })
     print(allFollowing)
+    return jsonify({"everyoneFollowed" : allFollowing})
+
+
+@app.route('/user-following', methods=["POST"])
+def user_follows(): 
+    user_id = crud.get_user_id(session['current_user'])
+    other_user_id = request.get_json("props.userId")
+
+    print(user_id)
+    following = crud.get_following(user_id)
+
+    allFollowing = []
+
+    for person in following:
+        if person.user_id == other_user_id:
+            allFollowing.append({
+                "userId": person.user_id,
+                "profilePic": person.profile_picture,
+                "usersName": person.name,
+                "username": person.username, 
+            })
+
     return jsonify({"everyoneFollowed" : allFollowing})
 
 
