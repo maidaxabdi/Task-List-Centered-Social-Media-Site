@@ -1,5 +1,6 @@
 
 const App = () => {
+    const [loggedOut, setLoggedOut] = React.useState(false); 
     const [loggedIn, setLoggedIn] = React.useState(false); 
     const [showLogin, setShowLogin] = React.useState(true);
     const [user, setUser] = React.useState([])
@@ -11,22 +12,58 @@ const App = () => {
             setUser(userInfo)
         }
     }
+
+    React.useEffect(() => {
+        if (loggedOut != false) {
+            setShowLogin(true)
+            setLoggedIn(false)
+        }
+    }, [loggedOut]);
+
+    const [searchPost, setSearchPost] = React.useState([]);
+    const [searchUser, setSearchUser] = React.useState([]);
+
+    const [seePosts, setSeePosts] = React.useState([])
+    const [seeProfile, setSeeProfile] = React.useState([])
+
+    const checkProfile = (profileResponse) => {
+    setSeeProfile(profileResponse);
+    }
+    
+    const checkPosts = (postResponse) => {
+        setSeePosts(postResponse);
+    }
+    console.log(seeProfile)
+    console.log(seePosts)
+
+    function postSearch(foundPosts) {
+        setSearchPost(foundPosts);
+    }
+
+   function userSearch(foundUsers) {
+        setSearchUser(foundUsers);
+     }
+     
+     console.log(searchUser)
+     console.log(searchPost)
+
     const [showLogout, setShowLogout] = React.useState(false);
     const [showProfile, setShowProfile] = React.useState(false);
     const [showHome, setShowHome] = React.useState(true);
     const [showResults, setShowResults] = React.useState(false);
 
     console.log(showResults)
-    const showLogoutForum = () => { setShowResults(false); setShowHome(false); setShowLogout(true); setShowProfile(false) }
+    const showLogoutForum = () => { setShowLogout(true)}
     const showProfilePage= () => { setShowResults(false); setShowHome(false); setShowProfile(true); setShowLogout(false) }
     const showHomePage= () => { setShowResults(false); setShowHome(true); setShowProfile(false); setShowLogout(false)}
+
     const showSearchResults= () => { setShowResults(true); setShowHome(false); setShowProfile(false); setShowLogout(false)}
 
     return (
         <ReactBootstrap.Container>
         { showLogin ? 
         <ReactBootstrap.Row className="justify-content-md-center">
-        <ReactBootstrap.Col col-6>
+        <ReactBootstrap.Col lg>
             <ReactBootstrap.Image src="https://abs.twimg.com/sticky/illustrations/lohp_en_1302x955.png" fluid /> 
         </ReactBootstrap.Col>
         <ReactBootstrap.Col lg>
@@ -42,18 +79,16 @@ const App = () => {
         <ReactBootstrap.Col lg>
         { showHome ? <Home path='/home'/> : null}
         { showProfile ? <UserProfile path='/profile' /> : null }
-        { showLogout ? <Logout path='/' /> : null }
+        { showLogout ? <Logout show={loggedIn} onHide={() => setLoggedOut(true)}/> : null }
+        { showResults ? <SearchResults showResults={showResults} checkPosts={checkPosts} checkProfile={checkProfile} seePosts={seePosts} seeProfile={seeProfile} searchPost={searchPost} searchUser={searchUser}/> : null}
         </ReactBootstrap.Col>
         <ReactBootstrap.Col lg>
-        <SearchBar  
-        showResults={showResults}
-        showSearchResults={showSearchResults}
-        /> 
+        <Search showSearchResults={showSearchResults} 
+        postSearch={postSearch} userSearch={userSearch} />
         <div><button className='button' onClick={showHomePage}> Home </button></div>
         <div><button className='button' onClick={showProfilePage}> Profile </button></div>
         <div><button className='button' onClick={showLogoutForum}> Logout </button></div>
-        </ReactBootstrap.Col>
-        {/* <Logout show={loggedIn} onHide={() => setLoggedIn(false)}/> */}
+        </ReactBootstrap.Col> 
         </ReactBootstrap.Row>
         : null}
         </ReactBootstrap.Container>
@@ -124,24 +159,30 @@ function Login (props) {
             </ReactBootstrap.Modal.Title>
             </ReactBootstrap.Modal.Header>
             <ReactBootstrap.Modal.Body>
+            <div>
             <input
                 value={email}
                 placeholder="Email"
                 onChange={(event) => setEmail(event.target.value)}
                 id="emailInput"
             ></input>
+            </div>
+            <div>
               <input
                 value={username}
                 placeholder="Username"
                 onChange={(event) => setUsername(event.target.value)}
                 id="usernameInput"
             ></input>
+            </div>
+            <div>
               <input
                 value={password}
                 placeholder="Password"
                 onChange={(event) => setPassword(event.target.value)}
                 id="passwordInput"
             ></input>
+            </div>
           </ReactBootstrap.Modal.Body>
           <ReactBootstrap.Modal.Footer>
             <button onClick={() => {props.onHide; AddNewUser()}}>Sign up</button>
@@ -214,7 +255,7 @@ function Post(props) {
         <ReactBootstrap.Card style={{ width: '40rem' }}>
         <ReactBootstrap.Card.Header > 
         <ReactBootstrap.Card.Img className="resize" src={props.profilePic}/>
-        {props.name}  <span className="font-weight-light" > @{props.username} </span>
+        <b>{props.name}</b>  <span className="font-weight-light" > @{props.username} </span>
         </ReactBootstrap.Card.Header>
         <ReactBootstrap.Card.Body>
         <ReactBootstrap.Card.Title>{props.postTitle}</ReactBootstrap.Card.Title>
@@ -234,7 +275,7 @@ function UserPost(props) {
         <ReactBootstrap.Card style={{ width: '40rem' }}>
         <ReactBootstrap.Card.Header > 
         <ReactBootstrap.Card.Img className="resize" src={props.profilePic}/>
-        {props.name}  <span className="font-weight-light" > @{props.username} </span>
+        <b>{props.name}</b>  <span className="font-weight-light" > @{props.username} </span>
         </ReactBootstrap.Card.Header>
         <ReactBootstrap.Card.Body>
         <ReactBootstrap.Card.Title>{props.postTitle}</ReactBootstrap.Card.Title>
@@ -347,7 +388,7 @@ function UserProfile() {
     
     const prof = (
         <div key={userInfo.userId}>
-            <UserHeader
+            <UserProfileHeader
                 name={userInfo.name}
                 username={userInfo.username}
                 profilePic={userInfo.profilePic}
@@ -536,42 +577,6 @@ function EditProfile(props) {
 
 /////////////////////////////////////////////////////////////////////////////// SEARCH ////////////////////////////////////////////////////
 
-function SearchBar(props) {
-    const [searchPost, setSearchPost] = React.useState([]);
-    const [searchUser, setSearchUser] = React.useState([]);
-
-    const [seePosts, setSeePosts] = React.useState([])
-    const [seeProfile, setSeeProfile] = React.useState([])
-
-    const checkProfile = (profileResponse) => {
-    setSeeProfile(profileResponse);
-    }
-    
-    const checkPosts = (postResponse) => {
-        setSeePosts(postResponse);
-    }
-    console.log(seeProfile)
-    console.log(seePosts)
-
-    function postSearch(foundPosts) {
-        setSearchPost(foundPosts);
-    }
-
-   function userSearch(foundUsers) {
-        setSearchUser(foundUsers);
-     }
-     
-     console.log(props.showResults)
-     console.log(searchUser)
-     console.log(searchPost)
-     
-    return (
-        <div>
-        <Search showSearchResults={props.showSearchResults} postSearch={postSearch} userSearch={userSearch} />
-        <SearchResults showResults={props.showResults} checkPosts={checkPosts} checkProfile={checkProfile} seePosts={seePosts} seeProfile={seeProfile} searchPost={searchPost} searchUser={searchUser}/>
-        </div>
-    );
-}
 function Search(props) {
     const [search, setSearch] = React.useState("");
 
@@ -690,12 +695,32 @@ function SearchResults(props) {
 ///////////////////////////////////////////////////////// OTHER USERS ////////////////////////////////////////////////////////////
 function UserHeader (props) {
     return (
-        <div className="user">
-            <img className="resize" src={props.profilePic}/>
-            <span> {props.name} </span>
-            <span> {props.username} </span>
-            <span> {props.bio} </span>
-        </div>
+       <ReactBootstrap.Card>
+        <ReactBootstrap.Card.Body> 
+        <ReactBootstrap.Card.Img className="resize" src={props.profilePic}/>
+        {props.name}  <span className="font-weight-light" > @{props.username} </span>
+        <span> {props.bio} </span>
+        </ReactBootstrap.Card.Body>
+      </ReactBootstrap.Card>
+    );
+}
+
+function UserProfileHeader (props) {
+    return (
+       <ReactBootstrap.Card>
+        {/* <ReactBootstrap.Card.Img variant="top" src="holder.js/100px180" /> */}
+        <ReactBootstrap.Card.Body> 
+        <ReactBootstrap.Card.Img className="resize" src={props.profilePic}/>
+        <ReactBootstrap.Card.Title>  </ReactBootstrap.Card.Title>
+        <ReactBootstrap.Card.Text> 
+            <p>
+            <b> {props.name} </b>
+            <p className="font-weight-light" > @{props.username} </p>
+            {props.bio}
+            </p>
+            </ReactBootstrap.Card.Text>
+        </ReactBootstrap.Card.Body>
+      </ReactBootstrap.Card>
     );
 }
 
@@ -755,10 +780,11 @@ function User(props) {
     return (
         <div>
         <div className="user">
-            <img className="resize"  src={props.profilePic}/>
-            {props.name}
-            {props.username}
-            {props.bio}
+            <UserProfileHeader
+            profilePic={props.profilePic}
+            name={props.name}
+            username={props.username}
+            bio={props.bio} />
             <FollowUser
             following={following}
             userId={props.userId}
@@ -973,12 +999,12 @@ function Home() {
         </div>
     );
 }
-function Logout() {
+function Logout(props) {
 
     return (
         <ReactBootstrap.Modal
             {...props}
-            size="sm"
+            size="md"
             aria-labelledby="contained-modal-title-vcenter"
             centered
             >
@@ -1076,8 +1102,6 @@ function TaskList() {
             <MyReward
             rewardId={currentReward.rewardId}
             reward={currentReward.reward}
-            /> 
-            <RewardDelete
             editReward={editReward} 
             rewardId={currentReward.rewardId}
             />
@@ -1089,7 +1113,7 @@ function TaskList() {
     return (
         <React.Fragment>
             <ReactBootstrap.Card style={{ width: '18rem'}}>
-            <ReactBootstrap.Card.Header as="h5" className="font-weight-bold"> Checklist </ReactBootstrap.Card.Header>
+            <ReactBootstrap.Card.Header as="h5"> <b>Checklist </b></ReactBootstrap.Card.Header>
             <ReactBootstrap.Card.Body> <AddTheTask addTask={addTask}/> </ReactBootstrap.Card.Body>
             <ReactBootstrap.ListGroup variant="flush"></ReactBootstrap.ListGroup>
             {tasks.map(result => {
@@ -1157,9 +1181,11 @@ function Task(props) {
 function MyReward(props) {
     
     return (
-        <span className="reward">
-            {props.reward}
-        </span>
+       <ReactBootstrap.Card>
+        <ReactBootstrap.Card.Body> {props.reward} </ReactBootstrap.Card.Body>
+        <RewardDelete editReward={props.editReward} 
+            rewardId={props.rewardId}/>
+      </ReactBootstrap.Card>
     );
 }
 
@@ -1358,23 +1384,30 @@ function ListRewards(props) {
     }); 
     }
     return (
-    <div className="col-md-4">
-       <h2> Rewards </h2>
-            <p> Add to your list of rewards </p>
-            <label htmlFor="rewardInput"></label>
-            <input
-                value={reward}
-                placeholder="Enter Reward"
-                onChange={(event) => setReward(event.target.value)}
-                id="rewardInput"
-            ></input>
-            <button onClick={createReward}> Add </button>
-            <h3> Current Rewards: </h3>
-            <div className="grid">{props.rewardList}</div>
-            <p> Do you wish to change the number of tasks you need to complete before receiving a reward? 
-                <a onClick={changeAmount}> <u> Yes </u> </a> </p>
-                { showAmount ? <AmountForum changedAmount={props.changedAmount} /> : null }
-        </div>
+        <React.Fragment>
+        <ReactBootstrap.Card >
+        <ReactBootstrap.Card.Body>
+          <ReactBootstrap.Card.Title>Rewards</ReactBootstrap.Card.Title>
+          <ReactBootstrap.Card.Text>
+          <p> Add to your list of rewards </p>
+                  <label htmlFor="rewardInput"></label>
+                  <input
+                      value={reward}
+                      placeholder="Enter Reward"
+                      onChange={(event) => setReward(event.target.value)}
+                      id="rewardInput"
+                  ></input>
+                  <button onClick={createReward}> Add </button>
+          </ReactBootstrap.Card.Text>
+          
+        <ReactBootstrap.Card.Title>Current Rewards</ReactBootstrap.Card.Title>
+        {props.rewardList}
+        <p> Do you wish to change the number of tasks you need to complete before receiving a reward? 
+              <a onClick={changeAmount}> <u> Yes </u> </a> </p>
+              { showAmount ? <AmountForum changedAmount={props.changedAmount} /> : null }
+        </ReactBootstrap.Card.Body>
+        </ReactBootstrap.Card>
+        </React.Fragment>
         );
 }
 
