@@ -1,0 +1,32 @@
+img.resize { 
+    border-radius: 50%; 
+    width: 65px;
+}
+
+body{
+     background-color: #FFFFFF;
+    }
+
+.button {
+    transition-duration: 0.4s;
+    width: 50%;
+    height: 3em;
+    margin: 1em auto;
+    border-radius: 100px;
+    background-color: #FFFFFF;
+    }
+      
+.button:hover {
+    background-color: #C0C0C0; 
+    }
+
+body
+    {
+    font-family: 'Chirp';
+    }
+
+
+.checkButton {
+    background-color:  rgb(29, 155, 240);
+    color: #FFFFFF
+}

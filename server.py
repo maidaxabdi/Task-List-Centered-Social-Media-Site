@@ -24,14 +24,14 @@ app = Flask(__name__)
 def homepage():
     """View homepage."""
 
-    return render_template('homepage.html')
+    return render_template('base.html')
 
 
 @app.route('/users', methods=['POST'])
 def next_steps():
-    username = request.form.get("username")
-    email = request.form.get("email")
-    password = request.form.get("password")
+    username = request.get_json().get("username")
+    email = request.get_json().get("email")
+    password = request.get_json().get("password")
     
     email_exists = crud.get_user_by_email(email)
     username_exists = crud.get_user_by_username(username)
@@ -53,14 +53,22 @@ def next_steps():
 
 @app.route("/login", methods=["POST"])
 def current_user():
-    email = request.form.get("email")
-    password = request.form.get("password")
+    email = request.get_json().get("email")
+    password = request.get_json().get("password")
     user = crud.get_user_by_email(email)
 
     if user and user.password == password:
         session['current_user'] = user.email
         flash('You have successfully logged in!')
-        return redirect ('/home')
+        
+        currentUser = {
+            "username": user.username,
+            "name": user.name,
+            "bio": user.bio,
+        }
+
+        return jsonify({"user" : currentUser})
+
     elif user and user.password != password:
         flash('Password is incorrect! Please try again.')
     else:
@@ -215,7 +223,8 @@ def new_post():
     post = request.get_json().get("post")
     post_title = request.get_json().get("postTitle")
     user_id = crud.get_user_id(session['current_user'])
-    post_date_made = datetime.now().replace(second=0, microsecond=0)
+    post_date_made = datetime.now().replace(tzinfo=None, second=0, microsecond=0)
+
     the_post = crud.create_post(user_id, post, post_date_made, post_title)
     
     posts = crud.get_post(user_id, postId = the_post.post_id)
@@ -238,9 +247,9 @@ def delete_post():
     the_post = crud.get_post(postId, user_id)
     
     post_deleted = {
-        "post": the_post.post, 
-        "postTitle": the_post.post_title,
-        "postId": the_post.post_id,
+        "post": the_post[0][1].post, 
+        "postTitle": the_post[0][1].post_title,
+        "postId": the_post[0][1].post_id,
     }
 
     crud.delete_post(postId, user_id)
@@ -370,7 +379,7 @@ def show_search():
 
 @app.route('/user-details', methods=["POST"])
 def get_profile(): 
-    user_id = request.get_json("user")
+    user_id= request.get_json("props.userResult")
     
     profileInformation = []
     all_posts = []
