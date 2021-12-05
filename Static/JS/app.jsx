@@ -3,7 +3,7 @@ const App = () => {
     const [loggedOut, setLoggedOut] = React.useState(false); 
     const [loggedIn, setLoggedIn] = React.useState(false); 
     const [showLogin, setShowLogin] = React.useState(true);
-    const [user, setUser] = React.useState([])
+    const [user, setUser] = React.useState('')
 
     const userRight = (userInfo) => {
         if (userInfo != null) {
@@ -12,11 +12,13 @@ const App = () => {
             setUser(userInfo)
         }
     }
-
+    console.log(user)
+    
     React.useEffect(() => {
-        if (loggedOut != false) {
+        if (loggedOut == true) {
             setShowLogin(true)
             setLoggedIn(false)
+            setShowLogout(false)
         }
     }, [loggedOut]);
 
@@ -62,32 +64,33 @@ const App = () => {
     return (
         <ReactBootstrap.Container>
         { showLogin ? 
-        <ReactBootstrap.Row className="justify-content-md-center">
-        <ReactBootstrap.Col lg>
+        <ReactBootstrap.Row className="justify-content-xxl-center">
+        <ReactBootstrap.Col xxl>
             <ReactBootstrap.Image src="https://abs.twimg.com/sticky/illustrations/lohp_en_1302x955.png" fluid /> 
         </ReactBootstrap.Col>
-        <ReactBootstrap.Col lg>
+        <ReactBootstrap.Col xxl>
             <Login userRight={userRight} /> 
         </ReactBootstrap.Col>
         </ReactBootstrap.Row>
         : null}
         { loggedIn ? 
-        <ReactBootstrap.Row className="justify-content-md-center">
-        <ReactBootstrap.Col lg>
+        <ReactBootstrap.Row className="justify-content-xxl-center">
+        <ReactBootstrap.Col xxl>
             <TaskList />
         </ReactBootstrap.Col>
-        <ReactBootstrap.Col lg>
+        <ReactBootstrap.Col xxl>
         { showHome ? <Home path='/home'/> : null}
-        { showProfile ? <UserProfile path='/profile' /> : null }
+        { showProfile ? <UserProfile user={user} showResults={showResults} checkPosts={checkPosts} checkProfile={checkProfile}  seePosts={seePosts} seeProfile={seeProfile}  path='/profile' /> : null }
         { showLogout ? <Logout show={loggedIn} onHide={() => setLoggedOut(true)}/> : null }
-        { showResults ? <SearchResults showResults={showResults} checkPosts={checkPosts} checkProfile={checkProfile} seePosts={seePosts} seeProfile={seeProfile} searchPost={searchPost} searchUser={searchUser}/> : null}
+        { showResults ? <SearchResults user={user} showResults={showResults} checkPosts={checkPosts} checkProfile={checkProfile} seePosts={seePosts} seeProfile={seeProfile} searchPost={searchPost} searchUser={searchUser}/> : null}
         </ReactBootstrap.Col>
-        <ReactBootstrap.Col lg>
-        <Search showSearchResults={showSearchResults} 
-        postSearch={postSearch} userSearch={userSearch} />
+        <ReactBootstrap.Col xxl>
+        <div> <Search user={user} showSearchResults={showSearchResults} 
+        postSearch={postSearch} userSearch={userSearch} /> 
         <div><button className='button' onClick={showHomePage}> Home </button></div>
         <div><button className='button' onClick={showProfilePage}> Profile </button></div>
         <div><button className='button' onClick={showLogoutForum}> Logout </button></div>
+        </div>
         </ReactBootstrap.Col> 
         </ReactBootstrap.Row>
         : null}
@@ -102,21 +105,22 @@ function Login (props) {
     
         return (
             <React.Fragment>
+            <div className='beginLogin'>
             <h1> <b> Happening now </b></h1>
             <h3> <b> Join Check today. </b> </h3> 
     
-            <button className='button' variant="primary" onClick={() => setShowSignup(true)}>
-            Sign up with email
+            <button className='newButton' variant="primary" onClick={() => setShowSignup(true)}>
+            <b>Sign up with email</b>
             </button>
     
             <SignUp
             show={showSignup}
             onHide={() => setShowSignup(false)}
             />
-    
+            
             <h5> <b> Already have an account?  </b> </h5>
-            <button className='button' variant="primary" onClick={() => setShowSignin(true)}>
-            Sign in
+            <button className='signInButton' variant="primary" onClick={() => setShowSignin(true)}>
+            <b>Sign in</b>
             </button>
     
             <SignIn
@@ -124,6 +128,7 @@ function Login (props) {
             onHide={() => setShowSignin(false)}
             userRight={props.userRight}
             />
+            </div>
         </React.Fragment>
         );
     }
@@ -155,37 +160,40 @@ function Login (props) {
                 >
           <ReactBootstrap.Modal.Header closeButton>
             <ReactBootstrap.Modal.Title id="contained-modal-title-vcenter">
-              Create your account
+              <b> Create your account </b>
             </ReactBootstrap.Modal.Title>
             </ReactBootstrap.Modal.Header>
             <ReactBootstrap.Modal.Body>
-            <div>
+            <label>
             <input
+                className='user'
                 value={email}
                 placeholder="Email"
                 onChange={(event) => setEmail(event.target.value)}
                 id="emailInput"
             ></input>
-            </div>
-            <div>
+            </label>
+            <label>
               <input
+                className='user'
                 value={username}
                 placeholder="Username"
                 onChange={(event) => setUsername(event.target.value)}
                 id="usernameInput"
             ></input>
-            </div>
-            <div>
+            </label>
+            <label>
               <input
+                className='user'
                 value={password}
                 placeholder="Password"
                 onChange={(event) => setPassword(event.target.value)}
                 id="passwordInput"
             ></input>
-            </div>
+            </label>
           </ReactBootstrap.Modal.Body>
           <ReactBootstrap.Modal.Footer>
-            <button onClick={() => {props.onHide; AddNewUser()}}>Sign up</button>
+            <button className='change' onClick={() => {props.onHide; AddNewUser()}}>Sign up</button>
           </ReactBootstrap.Modal.Footer>
         </ReactBootstrap.Modal>
       );
@@ -206,7 +214,9 @@ function Login (props) {
             }).then(response => {
                 response.json().then(jsonResponse => {
                 console.log(jsonResponse)
-                props.userRight(jsonResponse)
+                const {user} = jsonResponse;
+                const {userId: userIdText} = user;
+                props.userRight(userIdText)
                 });
             });
       }
@@ -219,27 +229,31 @@ function Login (props) {
             >
       <ReactBootstrap.Modal.Header closeButton>
         <ReactBootstrap.Modal.Title id="contained-modal-title-vcenter">
-          Sign in to Check
+          <b>Sign in to Check</b>
         </ReactBootstrap.Modal.Title>
         </ReactBootstrap.Modal.Header>
         <ReactBootstrap.Modal.Body>
         <form>
+            <label>
             <input
                 value={email}
                 placeholder="Email"
                 onChange={(event) => setEmail(event.target.value)}
                 id="emailInput"
             ></input>
+            </label>
+            <label>
               <input
                 value={password}
                 placeholder="Password"
                 onChange={(event) => setPassword(event.target.value)}
                 id="passwordInput"
             ></input>
+            </label>
         </form>
       </ReactBootstrap.Modal.Body>
       <ReactBootstrap.Modal.Footer>
-        <button onClick={() => {props.onHide; loginUser()}}>Sign in</button>
+        <button className='change' onClick={() => {props.onHide; loginUser()}}>Sign in</button>
       </ReactBootstrap.Modal.Footer>
     </ReactBootstrap.Modal>
     );
@@ -252,16 +266,15 @@ function Login (props) {
 function Post(props) {
 
     return (
-        <ReactBootstrap.Card style={{ width: '40rem' }}>
-        <ReactBootstrap.Card.Header > 
-        <ReactBootstrap.Card.Img className="resize" src={props.profilePic}/>
-        <b>{props.name}</b>  <span className="font-weight-light" > @{props.username} </span>
-        </ReactBootstrap.Card.Header>
+        <ReactBootstrap.Card className='postUserTaskReward' style={{ width: '40rem' }}>
         <ReactBootstrap.Card.Body>
-        <ReactBootstrap.Card.Title>{props.postTitle}</ReactBootstrap.Card.Title>
+        <ReactBootstrap.Card.Title> <ReactBootstrap.Card.Img className="resize" src={props.profilePic}/> <b>{props.name}</b>  <span className="mb-2 text-muted" > @{props.username} </span> </ReactBootstrap.Card.Title>
+        <ReactBootstrap.Card.Title> <b>{props.postTitle}</b></ReactBootstrap.Card.Title>
         <ReactBootstrap.Card.Text>
-        <p className="text-md-left"> {props.post} </p>
-        <p className="text-sm-left" className="font-weight-light" > {props.postDate} </p>
+        <span className="text-md-left"> {props.post} </span>
+        </ReactBootstrap.Card.Text>
+        <ReactBootstrap.Card.Text>
+        <span className="text-sm-left" className="mb-2 text-muted"  > {props.postDate} </span>
         </ReactBootstrap.Card.Text>
         </ReactBootstrap.Card.Body>
         </ReactBootstrap.Card>
@@ -273,21 +286,18 @@ function UserPost(props) {
 
     return (
         <ReactBootstrap.Card style={{ width: '40rem' }}>
-        <ReactBootstrap.Card.Header > 
-        <ReactBootstrap.Card.Img className="resize" src={props.profilePic}/>
-        <b>{props.name}</b>  <span className="font-weight-light" > @{props.username} </span>
-        </ReactBootstrap.Card.Header>
         <ReactBootstrap.Card.Body>
-        <ReactBootstrap.Card.Title>{props.postTitle}</ReactBootstrap.Card.Title>
+        <ReactBootstrap.Card.Title> <ReactBootstrap.Card.Img className="resize" src={props.profilePic}/> <b>{props.name}</b>  <span className="mb-2 text-muted" > @{props.username} </span> </ReactBootstrap.Card.Title>
+        <ReactBootstrap.Card.Title> <b>{props.postTitle}</b></ReactBootstrap.Card.Title>
         <ReactBootstrap.Card.Text>
-        <p class="text-md-left"> {props.post} </p>
-        <p class="text-sm-left" class="font-weight-light" > {props.postDate} </p>
+        <span className="text-md-left"> {props.post} </span>
         </ReactBootstrap.Card.Text>
-        </ReactBootstrap.Card.Body>
-        <p class="text-right">
+        <ReactBootstrap.Card.Text>
+        <span className="mb-2 text-muted"> {props.postDate} </span>
         <PostDelete postId={props.postId}
         deletePost={props.deletePost} />
-        </p>
+        </ReactBootstrap.Card.Text>
+        </ReactBootstrap.Card.Body>
         </ReactBootstrap.Card>
     );
 }
@@ -321,6 +331,7 @@ function AddPosts(props) {
         <ReactBootstrap.Card.Body>
         <div>
         <input
+            class="form-control form-control-lg" 
             value={postTitle}
             placeholder="Post Title"
             onChange={(event) => setPostTitle(event.target.value)}
@@ -329,6 +340,7 @@ function AddPosts(props) {
         </div>
         <div>
        <textarea
+            class="form-control form-control-lg" 
             value={post}
             placeholder="What's happening?"
             onChange={(event) => setPost(event.target.value)}
@@ -364,8 +376,8 @@ function PostDelete(props) {
 }
 
 // GO TO PROFILE
-function UserProfile() {
-
+function UserProfile(props) {
+    const [show, setShow] = React.useState(true);
     const [profileEdit, setProfileEdit] = React.useState([]);
     const [userInfo, setUserInfo] = React.useState([]);
  
@@ -385,14 +397,27 @@ function UserProfile() {
             .then(response => response.json())
             .then(result => setPosts(result.allPosts));
     }, [profileEdit]);
-    
+
+    const [userResult, setUserResult] = React.useState('');
+    const [showResults, setShowResults] = React.useState(false)
+
+    const switchUserProfile = (sent) => {
+        setShow(false)
+        setUserResult(sent)
+        console.log(sent)
+        setShowResults(true)
+    }
+
     const prof = (
         <div key={userInfo.userId}>
-            <UserProfileHeader
+            <User
                 name={userInfo.name}
                 username={userInfo.username}
                 profilePic={userInfo.profilePic}
                 bio={userInfo.bio}
+                userId={userInfo.userId}
+                user={props.user}
+                switchUserProfile={switchUserProfile}
             />
         </div>
     );
@@ -436,18 +461,22 @@ function UserProfile() {
         }
 
         console.log(addedPosts)
+
     return (
         <React.Fragment> 
+        { show ?
+        <div>
         <div className="grid"> {prof} </div>
-        <button variant="primary" onClick={() => setShowEdit(true)}>
+        <button className='edit' variant="primary" onClick={() => setShowEdit(!showEdit)}>
             Edit profile
         </button>
-        <EditProfile
+        { showEdit ? <EditProfile
             show={showEdit}
-            onHide={() => setShowEdit(false)}
             userEdited={userEdited}
-        />
+        /> : null}
         <div className="grid"> {addedPosts} </div>
+        </div>
+        : <UserDetails user={props.user} showResults={showResults} userResult={userResult} checkPosts={props.checkPosts} checkProfile={props.checkProfile}  seePosts={props.seePosts} seeProfile={props.seeProfile} /> }
         </React.Fragment>
     )
 }
@@ -458,10 +487,9 @@ function EditProfile(props) {
     const [username, setUsername] = React.useState('');
     const [userBio, setUserBio] = React.useState('');
     const [previewSource, setPreviewSource] = React.useState('');
-    const [showEdit, setShowEdit] = React.useState(false)
-    const { userEdited, onHide, ...rest } = props
+    const [show, setShow] = React.useState(true)
 
-    const ShowEditChange = () => {setShowEdit(!showEdit)}
+    const { userEdited, onHide, ...rest } = props
 
     const editProfile = () => {
         console.log(formData.get('my-file'))
@@ -496,7 +524,6 @@ function EditProfile(props) {
         }
     }
     const editUser = () => {
-        ShowEditChange()
         console.log(usersName)
         console.log(userBio)
             fetch('/edit-user', {
@@ -515,6 +542,7 @@ function EditProfile(props) {
      }
     return (
         <React.Fragment> 
+        { show ?
          <ReactBootstrap.Modal
             {...rest}
             size="md"
@@ -536,7 +564,7 @@ function EditProfile(props) {
             onChange={(e) => whenPicChanges(e)}
         ></input>
         {previewSource && (
-            <img src={previewSource} alt="chosen" />
+            <img src={previewSource} alt="chosen" style={{height: '75px'}}/>
             )}
         <p> Name </p>
         <label htmlFor="nameInput"></label>
@@ -558,19 +586,21 @@ function EditProfile(props) {
         ></input>
         <p> Bio </p>
          <label htmlFor="bioInput"></label>
-        <input
+        <textarea
+            className="form-control form-control-lg" 
             name="bio"
             type="text"
             value={userBio}
             onChange={(e) => setUserBio(e.target.value)}
             id="bioInput"
-        ></input>
+        ></textarea>
         </div>
       </ReactBootstrap.Modal.Body>
       <ReactBootstrap.Modal.Footer>
-      <button onClick={() => {props.onHide; editUser()}}>save</button>
+      <button className='change' onClick={() => {setShow(false); editUser()}}>save</button>
       </ReactBootstrap.Modal.Footer>
     </ReactBootstrap.Modal>
+    :  null }
         </React.Fragment>
     );
 }
@@ -603,8 +633,8 @@ function Search(props) {
 
     return (
         <React.Fragment>
-        <label htmlFor="searchInput"></label>
         <input
+            className="searchInput"
             placeholder="Search Check"
             value={search}
             onChange={(event) => setSearch(event.target.value)}
@@ -687,7 +717,7 @@ function SearchResults(props) {
                             })}
                         </div></div>
                     : null}
-    { showProfile ? <UserDetails showResults={props.showResults} userResult={userResult} checkPosts={props.checkPosts} checkProfile={props.checkProfile}  seePosts={props.seePosts} seeProfile={props.seeProfile} /> : null }
+    { showProfile ? <UserDetails user={props.user} showResults={props.showResults} userResult={userResult} checkPosts={props.checkPosts} checkProfile={props.checkProfile}  seePosts={props.seePosts} seeProfile={props.seeProfile} /> : null }
     </div>
     );
 }
@@ -695,40 +725,86 @@ function SearchResults(props) {
 ///////////////////////////////////////////////////////// OTHER USERS ////////////////////////////////////////////////////////////
 function UserHeader (props) {
     return (
-       <ReactBootstrap.Card>
+       <ReactBootstrap.Card className='postUserTaskReward'>
         <ReactBootstrap.Card.Body> 
-        <ReactBootstrap.Card.Img className="resize" src={props.profilePic}/>
-        {props.name}  <span className="font-weight-light" > @{props.username} </span>
-        <span> {props.bio} </span>
+        <ReactBootstrap.Card.Title> <ReactBootstrap.Card.Img className="resize" src={props.profilePic}/> <b>{props.name}</b>  <span className="mb-2 text-muted" > @{props.username} </span> </ReactBootstrap.Card.Title>
+        <ReactBootstrap.Card.Text> <span> {props.bio} </span>  </ReactBootstrap.Card.Text>
         </ReactBootstrap.Card.Body>
       </ReactBootstrap.Card>
     );
 }
 
 function UserProfileHeader (props) {
+
+    if (props.notCurrentUser) {
     return (
        <ReactBootstrap.Card>
         {/* <ReactBootstrap.Card.Img variant="top" src="holder.js/100px180" /> */}
         <ReactBootstrap.Card.Body> 
         <ReactBootstrap.Card.Img className="resize" src={props.profilePic}/>
-        <ReactBootstrap.Card.Title>  </ReactBootstrap.Card.Title>
+        <h2> <b> {props.name} </b> </h2>
+        <span className="font-weight-light" > @{props.username} </span> 
         <ReactBootstrap.Card.Text> 
-            <p>
-            <b> {props.name} </b>
-            <p className="font-weight-light" > @{props.username} </p>
-            {props.bio}
-            </p>
+            <FollowUser
+                notCurrentUser={props.notCurrentUser}
+                following={props.following}
+                userId={props.userId}
+                isFollowing={props.isFollowing}
+                user={props.user}/>
+            </ReactBootstrap.Card.Text> 
+            <ReactBootstrap.Card.Text> {props.bio} </ReactBootstrap.Card.Text> 
+            <ReactBootstrap.Card.Text> 
+            <RetrieveFollowed 
+            checkPosts={props.checkPosts} 
+            checkProfile={props.checkProfile} 
+            seePosts={props.seePosts} 
+            seeProfile={props.seeProfile}
+            userId={props.userId}
+            allFollowing={props.allFollowing}
+            followed={props.followed}
+            user={props.user}
+            switchUserProfile={props.switchUserProfile}
+           />
             </ReactBootstrap.Card.Text>
         </ReactBootstrap.Card.Body>
       </ReactBootstrap.Card>
     );
+    }
+    else {
+        return (
+        <ReactBootstrap.Card>
+        {/* <ReactBootstrap.Card.Img variant="top" src="holder.js/100px180" /> */}
+        <ReactBootstrap.Card.Body> 
+        <ReactBootstrap.Card.Img className="resize" src={props.profilePic}/> 
+        <ReactBootstrap.Card.Text> <b> {props.name} </b> </ReactBootstrap.Card.Text> 
+        <ReactBootstrap.Card.Text>
+            <span className="font-weight-light" > @{props.username} </span> 
+            </ReactBootstrap.Card.Text> 
+            <ReactBootstrap.Card.Text> {props.bio} </ReactBootstrap.Card.Text> 
+            <ReactBootstrap.Card.Text> 
+            <RetrieveFollowed 
+            checkPosts={props.checkPosts} 
+            checkProfile={props.checkProfile} 
+            seePosts={props.seePosts} 
+            seeProfile={props.seeProfile}
+            userId={props.userId}
+            allFollowing={props.allFollowing}
+            followed={props.followed}
+            user={props.user}
+            switchUserProfile={props.switchUserProfile}
+            />
+            </ReactBootstrap.Card.Text>
+        </ReactBootstrap.Card.Body>
+      </ReactBootstrap.Card>
+        )
+    }
 }
 
 function User(props) {
     const [added, setAdded] = React.useState([])
     const [followed, setFollowed] = React.useState([])
     const [showProfile, setShowProfile] = React.useState(false)
-    
+    const [notCurrentUser, setNotCurrentUser] = React.useState(true)
 
     const following = (userFollowed) => {
         setAdded(userFollowed)
@@ -750,7 +826,9 @@ function User(props) {
 
     const [isFollowing, setIsFollowing] = React.useState(true)
 
+    
     function UserFollowing() {
+        if (props.user == props.userId) {
         fetch('/user-following', {
             method: 'POST',
             headers: {
@@ -760,11 +838,12 @@ function User(props) {
         }).then(response => {
             response.json().then(jsonResponse => {
             const {everyoneFollowed} = jsonResponse;   
-            // console.log(everyoneFollowed)
+            console.log(everyoneFollowed)
             userFollows(everyoneFollowed)
         });
     }); 
     }
+}
 
     const userFollows = (everyoneFollowed) => {
         if (everyoneFollowed.length == 0) {
@@ -774,7 +853,14 @@ function User(props) {
     }
 
     React.useEffect(() => {
-        UserFollowing()
+        if (props.user == props.userId) {
+            setNotCurrentUser(false)
+            console.log(props.user)
+            console.log(props.userId)
+        }
+        else {
+            UserFollowing()
+        }
     }, []);
 
     return (
@@ -784,19 +870,21 @@ function User(props) {
             profilePic={props.profilePic}
             name={props.name}
             username={props.username}
-            bio={props.bio} />
-            <FollowUser
-            following={following}
-            userId={props.userId}
-            isFollowing={isFollowing}/>
-            <RetrieveFollowed 
+            bio={props.bio} 
             checkPosts={checkPosts} 
             checkProfile={checkProfile} 
             seePosts={seePosts} 
             seeProfile={seeProfile}
             userId={props.userId}
             allFollowing={allFollowing}
-            followed={followed}/>
+            followed={followed}
+            notCurrentUser={notCurrentUser}
+            following={following}
+            userId={props.userId}
+            isFollowing={isFollowing}
+            user={props.user}
+            switchUserProfile={props.switchUserProfile}
+            />
         </div>
         </div>
     );
@@ -845,6 +933,7 @@ function UserDetails(props) {
                 userId={result.userId}
                 profilePic={result.profilePic}
                 name={result.name}
+                user={props.user}
                 />
             </div>
             )
@@ -886,10 +975,9 @@ function FollowUser(props) {
         });
     }); 
     }
-    
 
     return (
-        <button value={props.userId} onClick={followThem}>
+        <button className='profile' value={props.userId} onClick={followThem}>
         {props.isFollowing ? 'Following' : 'Follow'}
         </button>
     );
@@ -901,10 +989,11 @@ function RetrieveFollowed(props) {
     const [userResultFollowing, setUserResultFollowing] = React.useState('')
 
     const [showProfile, setShowProfile] = React.useState(false)
-    const [showResults, setShowResults] = React.useState(true)
+    const [showResults, setShowResults] = React.useState(false)
 
-    const showTheProfile = () => {
-         setShowProfile(true); setShowResults(false) 
+    const showTheProfile = (userId) => {
+         setShowResults(false); 
+         props.switchUserProfile(userId);
     }
     const showTheResults = () => {
         setShowProfile(false); setShowResults(true) 
@@ -925,36 +1014,40 @@ function RetrieveFollowed(props) {
         });
     }); 
     }
-    React.useEffect(() => {
-        isMountRef.current = true;
-        }, []);
+    // React.useEffect(() => {
+    //     isMountRef.current = true;
+    //     }, []);
 
-    React.useEffect(() => {
-        if (isMountRef) {
-            showTheResults()
-        }}, []);
+    // React.useEffect(() => {
+    //     if (isMountRef) {
+    //         showTheResults()
+    //     }}, []);
 
-   
+        console.log(showProfile)
+        console.log(showResults)
+    
     return (
-        <div>
-        <button onClick={Following}> Following </button>
+        <React.Fragment>
+        <span className='followers' onClick={() => {showTheResults(); {Following()}}}> Following </span>
         { showResults ?
-        <div>
+        <span>
         {props.followed.map(result => {
             return (
-            <div key={result.userId} onClick={() => {setUserResultFollowing(result.userId); showTheProfile()}}>
+            <span key={result.userId} onClick={() => {
+                showTheProfile(result.userId);
+                setShowResults(false);
+                }}>
                 <UserHeader
                 username={result.username}
                 profilePic={result.profilePic}
                 name={result.name}
                 />
-            </div>
+            </span>
             )
-            })} 
-        </div> 
-        : null}
-        {showProfile ? <UserDetails userResultFollowing={userResultFollowing} checkPosts={props.checkPosts} checkProfile={props.checkProfile} seePosts={props.seePosts} seeProfile={props.seeProfile}/> : console.log('Cant do')}
-        </div>
+            })}
+        </span> 
+        : null} 
+        </React.Fragment>
     );
 }
 
@@ -978,9 +1071,10 @@ function Home() {
 
     return (
         <div>
-            <h2> Home </h2>
+            <ReactBootstrap.Card>
+            <ReactBootstrap.Card.Body><h4> <b>Home </b> </h4></ReactBootstrap.Card.Body>
+            </ReactBootstrap.Card>
             <AddPosts addPost={addPost} />
-        <div>
         {posts.map(result => {
             return (
             <div key={result.postId}>
@@ -996,7 +1090,6 @@ function Home() {
             )
             })}
         </div>
-        </div>
     );
 }
 function Logout(props) {
@@ -1010,14 +1103,14 @@ function Logout(props) {
             >
           <ReactBootstrap.Modal.Header closeButton>
             <ReactBootstrap.Modal.Title id="contained-modal-title-vcenter">
-            Log out of Check?
+            <b> Log out of Check? </b>
             </ReactBootstrap.Modal.Title>
             </ReactBootstrap.Modal.Header>
             <ReactBootstrap.Modal.Body>
             <p> You can always log back in at any time. </p>
           </ReactBootstrap.Modal.Body>
           <ReactBootstrap.Modal.Footer>
-            <button onClick={() => {props.onHide}}>Goodbye</button>
+            <button  className='change' onClick={props.onHide}>Goodbye</button>
           </ReactBootstrap.Modal.Footer>
         </ReactBootstrap.Modal>
     );
@@ -1119,7 +1212,7 @@ function TaskList() {
             {tasks.map(result => {
                 if (result.active == true) {
                     return (
-                    <ReactBootstrap.ListGroup.Item key={result.taskId}> 
+                    <ReactBootstrap.ListGroup.Item className='postUserTaskReward' key={result.taskId}> 
                         <TaskComplete
                         endTask={endTask}
                         amount={amount} 
@@ -1139,7 +1232,7 @@ function TaskList() {
             )}
             })}
             </ReactBootstrap.Card>
-            <button className='button' onClick={showRewardForum}> Rewards </button>
+            <button className='button' onClick={showRewardForum}>  Rewards </button>
             { showRewards ? <ListRewards editReward={editReward} rewardList={listRewards} changedAmount={changedAmount}/> : null}
         </React.Fragment>
     );
@@ -1181,10 +1274,9 @@ function Task(props) {
 function MyReward(props) {
     
     return (
-       <ReactBootstrap.Card>
-        <ReactBootstrap.Card.Body> {props.reward} </ReactBootstrap.Card.Body>
-        <RewardDelete editReward={props.editReward} 
-            rewardId={props.rewardId}/>
+       <ReactBootstrap.Card  className='postUserTaskReward'>
+        <ReactBootstrap.Card.Body> {props.reward} <RewardDelete editReward={props.editReward} 
+            rewardId={props.rewardId}/> </ReactBootstrap.Card.Body>
       </ReactBootstrap.Card>
     );
 }
@@ -1214,12 +1306,13 @@ function AddTheTask(props) {
         <React.Fragment>
         <label htmlFor="taskInput"></label>
         <input
+            className='taskReward'
             value={task}
             placeholder="Add New Task"
             onChange={(event) => setTask(event.target.value)}
             id="taskInput"
         ></input>
-        <button onClick={addNewTask}> Add </button>
+        <button className="save" onClick={addNewTask}> Add </button>
         </React.Fragment>
     );
  }
@@ -1269,7 +1362,8 @@ function TaskComplete(props) {
 
     return (
         <React.Fragment>
-        <button value={props.taskId} onClick={() => {{deactivateTask()}; {countCompleted()}}}>Check</button>
+        {/* <button value={props.taskId} onClick={() => {{deactivateTask()}; {countCompleted()}}}>Check</button> */}
+        <img className="checkMark" src="https://res.cloudinary.com/check/image/upload/v1638664458/kissclipart-blue-checkbox-icon-clipart-checkbox-computer-icons-7c29153c909a542f_prbhzl.png" value={props.taskId} onClick={() => {{deactivateTask()}; {countCompleted()}}}/>
         { showCongrats ? <Congratulations showCongrats={showCongrats} reward={reward} /> : null} 
         </React.Fragment>
     );
@@ -1333,7 +1427,7 @@ function AmountForum(props) {
             onChange={(event) => setAmount(event.target.value)}
             id="amountInput"
         ></input>
-        <button onClick={createAmount}> Save </button>
+        <button className="save" onClick={createAmount}> Save </button>
         </div>
 );
 }
@@ -1387,23 +1481,24 @@ function ListRewards(props) {
         <React.Fragment>
         <ReactBootstrap.Card >
         <ReactBootstrap.Card.Body>
-          <ReactBootstrap.Card.Title>Rewards</ReactBootstrap.Card.Title>
+          <ReactBootstrap.Card.Title> <b>Rewards </b></ReactBootstrap.Card.Title>
           <ReactBootstrap.Card.Text>
           <p> Add to your list of rewards </p>
                   <label htmlFor="rewardInput"></label>
                   <input
+                      className='taskReward'
                       value={reward}
                       placeholder="Enter Reward"
                       onChange={(event) => setReward(event.target.value)}
                       id="rewardInput"
                   ></input>
-                  <button onClick={createReward}> Add </button>
+                  <button className="save" onClick={createReward}> Add </button>
           </ReactBootstrap.Card.Text>
-          
-        <ReactBootstrap.Card.Title>Current Rewards</ReactBootstrap.Card.Title>
+
+        <ReactBootstrap.Card.Title> <b>Current Rewards </b></ReactBootstrap.Card.Title>
         {props.rewardList}
         <p> Do you wish to change the number of tasks you need to complete before receiving a reward? 
-              <a onClick={changeAmount}> <u> Yes </u> </a> </p>
+              <span className='amountChange'onClick={changeAmount}> <b> Yes </b> </span> </p>
               { showAmount ? <AmountForum changedAmount={props.changedAmount} /> : null }
         </ReactBootstrap.Card.Body>
         </ReactBootstrap.Card>

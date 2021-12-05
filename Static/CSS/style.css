@@ -1,11 +1,26 @@
 img.resize { 
     border-radius: 50%; 
     width: 65px;
+    height: 65px;
+}
+
+img.checkMark {
+    width: 30px;
 }
 
 body{
      background-color: #FFFFFF;
     }
+
+.beginLogin {
+    height: 100%;
+    width: 100%; 
+    font-weight: bold;
+}
+
+img.front {
+    width: 100%;
+}
 
 .button {
     transition-duration: 0.4s;
@@ -14,19 +29,148 @@ body{
     margin: 1em auto;
     border-radius: 100px;
     background-color: #FFFFFF;
+    font-weight: bold;
     }
-      
+
+.searchInput {
+    width: 50%;
+    height: 2em;
+    margin: 0.5em auto;
+    border-radius: 100px;
+    background-color: #E1E8ED;
+}
+
 .button:hover {
-    background-color: #C0C0C0; 
+    background-color: #E1E8ED;
+}
+
+.postUserTaskReward:hover {
+    background-color: #f0f3f5;
+}
+
+.change:hover {
+    background-color: #343e45;
+}
+
+.profile:hover {
+    background-color: #E1E8ED;
+}
+
+.edit:hover {
+    background-color: #E1E8ED;
+}
+
+.newButton:hover {
+    background-color: #1d8bf2;
+}
+
+.checkButton:hover {
+    background-color: #1d8bf2;
+}
+
+.save:hover {
+    background-color: #1d8bf2;
+}
+
+.signInButton:hover {
+    background-color: #e9f0f2;
+    font-weight: bold;
+}
+
+.taskReward {
+    width: 60%;
+    height: 2em;
+    margin: 0.5em auto;
+    border-radius: 100px;
+    background-color: #FFFFFF;
+}
+.taskReward::placeholder {
+    text-align: center;
+  }
+
+.searchInput::placeholder {
+    text-align: center;
+  }
+
+.newButton {
+    transition-duration: 0.4s;
+    width: 50%;
+    height: 3em;
+    margin: 1em auto;
+    border-radius: 100px;
+    background-color:  #1da1f2;
+    color: #FFFFFF;
+    font-weight: bold;
     }
+
+.signInButton {
+    transition-duration: 0.4s;
+    width: 50%;
+    height: 3em;
+    margin: 1em auto;
+    border-radius: 100px;
+    color:  rgb(29, 155, 240);
+    background-color: #FFFFFF;
+    font-weight: bold;
+    }
+
+.change {
+    transition-duration: 0.4s;
+    width: 25%;
+    height: 2em;
+    margin: 0.5em auto;
+    border-radius: 100px;
+    background-color: #14171A;
+    color: #FFFFFF;
+    font-weight: bold;
+    }   
+
+.save {
+    transition-duration: 0.4s;
+    width: 20%;
+    height: 2em;
+    margin: 0.5em auto;
+    border-radius: 100px;
+    background-color:  #1DA1F2;
+    color: #FFFFFF;
+    font-weight: bold;
+}
+
+.edit {
+    transition-duration: 0.4s;
+    width: 20%;
+    height: 2em;
+    margin: 0.5em auto;
+    border-radius: 100px;
+    background-color: #FFFFFF;
+    font-weight: bold;
+}
+
+.profile {
+    transition-duration: 0.4s;
+    width: 15%;
+    height: 2em;
+    margin: 0.5em auto;
+    border-radius: 100px;
+    background-color: #FFFFFF;
+}
 
 body
     {
-    font-family: 'Chirp';
+    font-family: 'Helvetica Neue';
     }
 
 
 .checkButton {
-    background-color:  rgb(29, 155, 240);
-    color: #FFFFFF
+    background-color:  #1DA1F2;
+    color: #FFFFFF;
+    font-weight: bold;
+}
+
+.followers:hover {
+    text-decoration: underline;
+}
+
+.amountChange:hover {
+    text-decoration: underline;
 }

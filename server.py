@@ -62,9 +62,7 @@ def current_user():
         flash('You have successfully logged in!')
         
         currentUser = {
-            "username": user.username,
-            "name": user.name,
-            "bio": user.bio,
+            "userId": user.user_id,
         }
 
         return jsonify({"user" : currentUser})
@@ -409,7 +407,9 @@ def get_profile():
 
 
         profileInformation = [userProfile, all_posts]
-
+    print('*********************************')
+    print(profileInformation)
+    print('*********************************')
     return jsonify({"Profile" : profileInformation})
 
 
@@ -468,8 +468,7 @@ def list_following():
 def user_follows(): 
     user_id = crud.get_user_id(session['current_user'])
     other_user_id = request.get_json("props.userId")
-
-    print(user_id)
+    
     following = crud.get_following(user_id)
 
     allFollowing = []
@@ -482,7 +481,9 @@ def user_follows():
                 "usersName": person.name,
                 "username": person.username, 
             })
-
+    print('*********************************')
+    print(allFollowing)
+    print('*********************************')
     return jsonify({"everyoneFollowed" : allFollowing})
 
 
