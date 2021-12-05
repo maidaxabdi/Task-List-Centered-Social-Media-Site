@@ -66,7 +66,7 @@ const App = () => {
         { showLogin ? 
         <ReactBootstrap.Row className="justify-content-xxl-center">
         <ReactBootstrap.Col xxl>
-            <ReactBootstrap.Image src="https://abs.twimg.com/sticky/illustrations/lohp_en_1302x955.png" fluid /> 
+            <ReactBootstrap.Image src="https://abs.twimg.com/sticky/illustrations/lohp_en_1302x955.png" /> 
         </ReactBootstrap.Col>
         <ReactBootstrap.Col xxl>
             <Login userRight={userRight} /> 
@@ -764,6 +764,7 @@ function UserProfileHeader (props) {
             followed={props.followed}
             user={props.user}
             switchUserProfile={props.switchUserProfile}
+            newUser={props.newUser}
            />
             </ReactBootstrap.Card.Text>
         </ReactBootstrap.Card.Body>
@@ -792,6 +793,7 @@ function UserProfileHeader (props) {
             followed={props.followed}
             user={props.user}
             switchUserProfile={props.switchUserProfile}
+            newUser={props.newUser}
             />
             </ReactBootstrap.Card.Text>
         </ReactBootstrap.Card.Body>
@@ -884,6 +886,7 @@ function User(props) {
             isFollowing={isFollowing}
             user={props.user}
             switchUserProfile={props.switchUserProfile}
+            newUser={props.newUser}
             />
         </div>
         </div>
@@ -892,7 +895,18 @@ function User(props) {
 
 function UserDetails(props) {
     const isMountRef = React.useRef(false);
-    
+    const [showResults, setShowResults] = React.useState(props.showResults);
+    const [showNewResults, setShowNewResults] = React.useState(false);
+
+    const newUser = (sent) => {
+        if (sent == true) {
+            UserDetail()
+            setShowResults(false)
+        }
+    }
+    const [thePosts, setThePosts] = React.useState([])
+    const [theProfile, setTheProfile] = React.useState([])
+
     const UserDetail = () =>  {
         fetch('/user-details', {
             method: 'POST',
@@ -906,8 +920,8 @@ function UserDetails(props) {
                 const {Profile} = jsonResponse
                 console.log(Profile[1])
                 console.log(Profile[0])
-                props.checkPosts(Profile[1]);
-                props.checkProfile(Profile[0]);
+                setThePosts(Profile[1]);
+                setTheProfile(Profile[0]);
             });
             });
     }
@@ -916,31 +930,34 @@ function UserDetails(props) {
         isMountRef.current = true}, []);
 
     React.useEffect(() => {
-        if (isMountRef && props.seeProfile && props.seePosts) {
+        if (isMountRef && theProfile && thePosts) {
             console.log('here')
             UserDetail()
         }}, []);
-        
+
+    console.log(thePosts)
+    console.log(theProfile)
     return (
         <React.Fragment>
-        { props.showResults ? 
-            <div>
-        {props.seeProfile.map(result => {
+        { showResults ? 
+            <span>
+        {theProfile.map(result => {
             return (
-            <div key={result.userId}>
+            <span key={result.userId}>
                 <User 
                 username={result.username}
                 userId={result.userId}
                 profilePic={result.profilePic}
                 name={result.name}
                 user={props.user}
+                newUser={newUser}
                 />
-            </div>
+            </span>
             )
             })}
-        {props.seePosts.map(result => {
+        {thePosts.map(result => {
             return (
-            <div key={result.postId}>
+            <span key={result.postId}>
                  <Post 
                 name={result.name}
                 profilePic={result.profilePic}
@@ -949,17 +966,47 @@ function UserDetails(props) {
                 post={result.post}
                 postDate={result.postDate}
                 />
-            </div>
+            </span>
             )
             })}
-        </div>
-        : null}
+        </span>
+        : 
+            <span>
+        {theProfile.map(result => {
+            return (
+            <span key={result.userId}>
+                <User 
+                username={result.username}
+                userId={result.userId}
+                profilePic={result.profilePic}
+                name={result.name}
+                user={props.user}
+                newUser={newUser}
+                />
+            </span>
+            )
+            })}
+        {thePosts.map(result => {
+            return (
+            <span key={result.postId}>
+                 <Post 
+                name={result.name}
+                profilePic={result.profilePic}
+                username={result.username}
+                postTitle={result.postTitle}
+                post={result.post}
+                postDate={result.postDate}
+                />
+            </span>
+            )
+            })}
+        </span> }
         </React.Fragment>
     );
     }
 
 function FollowUser(props) {
-
+    const [change, setChange] = React.useState('')
     function followThem() {
         fetch('/follow-user', {
             method: 'POST',
@@ -972,9 +1019,14 @@ function FollowUser(props) {
             const {userFollowed} = jsonResponse;   
             console.log(userFollowed)
             props.following(userFollowed) 
+            setChange(true)
         });
     }); 
     }
+
+    React.useEffect(() => {
+
+    }, [change]);
 
     return (
         <button className='profile' value={props.userId} onClick={followThem}>
@@ -986,14 +1038,20 @@ function FollowUser(props) {
 
 function RetrieveFollowed(props) {
     const isMountRef = React.useRef(false);
-    const [userResultFollowing, setUserResultFollowing] = React.useState('')
+    const [userResult, setUserResult] = React.useState('')
 
     const [showProfile, setShowProfile] = React.useState(false)
     const [showResults, setShowResults] = React.useState(false)
 
     const showTheProfile = (userId) => {
          setShowResults(false); 
+         if (props.switchUserProfile) {
          props.switchUserProfile(userId);
+         }
+         else {
+             setShowProfile(true)
+             props.newUser(true)
+         }
     }
     const showTheResults = () => {
         setShowProfile(false); setShowResults(true) 
@@ -1035,6 +1093,7 @@ function RetrieveFollowed(props) {
             return (
             <span key={result.userId} onClick={() => {
                 showTheProfile(result.userId);
+                setUserResult(result.userId)
                 setShowResults(false);
                 }}>
                 <UserHeader
@@ -1046,7 +1105,8 @@ function RetrieveFollowed(props) {
             )
             })}
         </span> 
-        : null} 
+        : null }
+        { showProfile ? <UserDetails user={props.user} showResults={props.showResults} userResult={userResult} checkPosts={props.checkPosts} checkProfile={props.checkProfile}  seePosts={props.seePosts} seeProfile={props.seeProfile} /> : null} 
         </React.Fragment>
     );
 }
@@ -1131,6 +1191,7 @@ function TaskList() {
     const [amount, setAmount] = React.useState('');
     const [showRewards, setShowRewards] = React.useState(false);
     const [showCongrats, setShowCongrats] = React.useState(false);
+    const [reward, setReward] = React.useState('')
     const showRewardForum = () => { setShowRewards(!showRewards) }
 
     function addTask(taskId, task, active) {
@@ -1145,6 +1206,11 @@ function TaskList() {
         setEndTask([...allEnded, currentEnded]);
     }
     
+    const startShowCongrats = (sent) => {
+        setReward(sent);
+        setShowCongrats(true);
+    }
+
     React.useEffect(() =>{
         fetch('/tasks')
             .then(response => response.json())
@@ -1202,6 +1268,9 @@ function TaskList() {
             );
     
     }
+
+    console.log(showCongrats)
+    console.log(reward)
     console.log(`tasks: `, tasks);
     return (
         <React.Fragment>
@@ -1219,6 +1288,7 @@ function TaskList() {
                         taskId={result.taskId}
                         completeTask={completeTask}
                         completed={completed}
+                        startShowCongrats={startShowCongrats}
                         /> 
                         <Task
                         taskId={result.taskId}
@@ -1234,6 +1304,7 @@ function TaskList() {
             </ReactBootstrap.Card>
             <button className='button' onClick={showRewardForum}>  Rewards </button>
             { showRewards ? <ListRewards editReward={editReward} rewardList={listRewards} changedAmount={changedAmount}/> : null}
+            { showCongrats ? <Congratulations onHide={() => setShowCongrats(false)} reward={reward} /> : null} 
         </React.Fragment>
     );
 }
@@ -1242,7 +1313,7 @@ function TaskList() {
 
 function Congratulations(props) {
     const [show, setShow] = React.useState(true);
-
+    console.log('hello')
     return (
       <React.Fragment> 
         { setShow ?
@@ -1252,7 +1323,7 @@ function Congratulations(props) {
             Your hard earned reward: {props.reward}
           </p>
           <div className="d-flex justify-content-end">
-            <button onClick={() => setShow(false)} variant="outline-success">
+            <button onClick={props.onHide} variant="outline-success">
               Enjoy!
             </button>
           </div>
@@ -1345,7 +1416,7 @@ function TaskComplete(props) {
         fetch('/random-reward')
             .then(response => response.json())
             .then(result => setReward(result.randomReward));
-    }, [target]);
+    }, []);
 
     console.log(props.amount)
     console.log(props.completed)
@@ -1356,6 +1427,7 @@ function TaskComplete(props) {
         if (tasksCompleted % amountSet === 0) {
             setTarget('received');
             setShowCongrats(true)
+            props.startShowCongrats(reward)
         }
     }
 
@@ -1364,7 +1436,6 @@ function TaskComplete(props) {
         <React.Fragment>
         {/* <button value={props.taskId} onClick={() => {{deactivateTask()}; {countCompleted()}}}>Check</button> */}
         <img className="checkMark" src="https://res.cloudinary.com/check/image/upload/v1638664458/kissclipart-blue-checkbox-icon-clipart-checkbox-computer-icons-7c29153c909a542f_prbhzl.png" value={props.taskId} onClick={() => {{deactivateTask()}; {countCompleted()}}}/>
-        { showCongrats ? <Congratulations showCongrats={showCongrats} reward={reward} /> : null} 
         </React.Fragment>
     );
  }
