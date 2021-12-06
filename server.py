@@ -528,7 +528,6 @@ def user_unfollowed():
 
     personUnfollowed = ({'follows': False})
 
-
     return jsonify({"unfollowed" : personUnfollowed})
 
 

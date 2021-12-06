@@ -1064,8 +1064,7 @@ function User(props) {
         }).then(response => {
             response.json().then(jsonResponse => {
             const {personUnfollowed} = jsonResponse;  
-            const {follows: followsText} = personUnfollowed[0];
-            setFollow(followsText)
+            setFollow(false)
         });
     });
     }
