@@ -380,6 +380,7 @@ def show_search():
                     "username": result.username,
                     "profilePic": result.profile_picture,
                     "name": result.name,
+                    "bio": result.bio,
                 })
     
     if the_search[1]:
@@ -392,6 +393,7 @@ def show_search():
                 "postTitle": result[1].post_title,
                 "post": result[1].post,
                 "postDate": result[1].post_date_made,
+                "picture": result[1].picture,
                 })
 
     all_results = [users, posts]
@@ -416,6 +418,7 @@ def get_profile():
             "profilePic": user.profile_picture,
             "name": user.name,
             "username": user.username,
+            "bio": user.bio,
         })
         for post in posts:
             all_posts.append({
@@ -426,6 +429,7 @@ def get_profile():
             "postTitle": post[1].post_title,
             "post": post[1].post,
             "postDate": post[1].post_date_made,
+            "picture": post[1].picture,
             })
 
 
@@ -477,6 +481,7 @@ def list_following():
             "profilePic": person.profile_picture,
             "usersName": person.name,
             "username": person.username, 
+            "bio": person.bio,
         })
     allFollowing.append(followingList)
 

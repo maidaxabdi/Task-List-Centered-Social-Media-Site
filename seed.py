@@ -38,15 +38,15 @@ for n in range(10):
     reminder = choice(reminder_choose)
     crud.create_reminder(user_id, reminder)
 
-    post = choice(post_choose)
-    post_title = choice(choose_post_title)
-    post_date_made = datetime.now().replace(second=0, microsecond=0)
-    the_post = crud.create_post(user_id, post, post_date_made, post_title)
+    # post = choice(post_choose)
+    # post_title = choice(choose_post_title)
+    # post_date_made = datetime.now().replace(second=0, microsecond=0)
+    # the_post = crud.create_post(user_id, post, post_date_made, post_title)
 
-    comment = choice(write_comment)
-    comment_date_made = datetime.now().replace(second=0, microsecond=0)
-    post_id = the_post.post_id
-    crud.create_comment(user_id, post_id, comment, comment_date_made)
+    # comment = choice(write_comment)
+    # comment_date_made = datetime.now().replace(second=0, microsecond=0)
+    # post_id = the_post.post_id
+    # crud.create_comment(user_id, post_id, comment, comment_date_made)
 
     group_name = choice(choose_group_name)
     group = crud.create_group(user_id, group_name)

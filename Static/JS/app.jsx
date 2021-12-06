@@ -185,6 +185,7 @@ function Login (props) {
             <label>
               <input
                 className='user'
+                type='password'
                 value={password}
                 placeholder="Password"
                 onChange={(event) => setPassword(event.target.value)}
@@ -245,6 +246,7 @@ function Login (props) {
             <label>
               <input
                 value={password}
+                type='password'
                 placeholder="Password"
                 onChange={(event) => setPassword(event.target.value)}
                 id="passwordInput"
@@ -667,6 +669,7 @@ function Search(props) {
             console.log(searchResponse[0])
             console.log(searchResponse[1])
             props.showSearchResults();
+            setSearch('')
         });
     });
     }
@@ -735,6 +738,7 @@ function SearchResults(props) {
                                 username={result.username} 
                                 name={result.name}
                                 profilePic={result.profilePic}
+                                bio={result.bio}
                                 />
                                 </div>
                                 );
@@ -751,6 +755,7 @@ function SearchResults(props) {
                             profilePic={result.profilePic}
                             name={result.name}
                             postDate={result.postDate}
+                            picture={result.picture}
                             />
                             </div>
                             );
@@ -765,7 +770,7 @@ function SearchResults(props) {
 ///////////////////////////////////////////////////////// OTHER USERS ////////////////////////////////////////////////////////////
 function UserHeader (props) {
     return (
-       <ReactBootstrap.Card className='postUserTaskReward'>
+       <ReactBootstrap.Card className='postUserTaskReward' style={{ width: '40rem' }}>
         <ReactBootstrap.Card.Body> 
         <ReactBootstrap.Card.Title> <ReactBootstrap.Card.Img className="resize" src={props.profilePic}/> <b>{props.name}</b>  <span className="mb-2 text-muted" > @{props.username} </span> </ReactBootstrap.Card.Title>
         <ReactBootstrap.Card.Text> <span> {props.bio} </span>  </ReactBootstrap.Card.Text>
@@ -778,11 +783,11 @@ function UserProfileHeader (props) {
 
     if (props.notCurrentUser) {
     return (
-       <ReactBootstrap.Card>
+       <ReactBootstrap.Card style={{ width: '40rem' }}>
         {/* <ReactBootstrap.Card.Img variant="top" src="holder.js/100px180" /> */}
         <ReactBootstrap.Card.Body> 
         <ReactBootstrap.Card.Img className="resize" src={props.profilePic}/>
-        <h2> <b> {props.name} </b> </h2>
+        <ReactBootstrap.Card.Title> <b> {props.name} </b> </ReactBootstrap.Card.Title> 
         <span className="font-weight-light" > @{props.username} </span> 
         <ReactBootstrap.Card.Text> 
             <FollowUser
@@ -815,11 +820,11 @@ function UserProfileHeader (props) {
     }
     else {
         return (
-        <ReactBootstrap.Card>
+        <ReactBootstrap.Card style={{ width: '40rem' }}>
         {/* <ReactBootstrap.Card.Img variant="top" src="holder.js/100px180" /> */}
         <ReactBootstrap.Card.Body> 
         <ReactBootstrap.Card.Img className="resize" src={props.profilePic}/> 
-        <ReactBootstrap.Card.Text> <b> {props.name} </b> </ReactBootstrap.Card.Text> 
+        <ReactBootstrap.Card.Title> <b> {props.name} </b> </ReactBootstrap.Card.Title> 
         <ReactBootstrap.Card.Text>
             <span className="font-weight-light" > @{props.username} </span> 
             </ReactBootstrap.Card.Text> 
@@ -966,6 +971,7 @@ function User(props) {
                 profilePic={result.profilePic}
                 name={result.name}
                 user={props.user}
+                bio={result.bio}
                 newUser={newUser}
                 />
             </span>
@@ -999,6 +1005,7 @@ function User(props) {
                 name={result.name}
                 user={props.user}
                 newUser={newUser}
+                bio={result.bio}
                 />
             </span>
             )
@@ -1013,6 +1020,7 @@ function User(props) {
                 postTitle={result.postTitle}
                 post={result.post}
                 postDate={result.postDate}
+                picture={result.picture}
                 />
             </span>
             )
@@ -1184,6 +1192,7 @@ function User(props) {
                 username={result.username}
                 profilePic={result.profilePic}
                 name={result.name}
+                bio={result.bio}
                 />
             </span>
             )
