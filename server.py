@@ -218,12 +218,32 @@ def number_completed():
 
 @app.route("/new-post",  methods=["POST"])
 def new_post():
-    post = request.get_json().get("post")
-    post_title = request.get_json().get("postTitle")
+    post = request.form["post"]
+    post_title = request.form["postTitle"]
+    picture = ''
+
+    if request.method == 'POST':
+         if 'my-file' in request.files:
+             picture = request.files['my-file']
+
     user_id = crud.get_user_id(session['current_user'])
     post_date_made = datetime.now().replace(tzinfo=None, second=0, microsecond=0)
 
-    the_post = crud.create_post(user_id, post, post_date_made, post_title)
+    if (picture != ''):
+        result = cloudinary.uploader.upload(picture,
+            api_key=CLOUDINARY_KEY,
+            api_secret=CLOUDINARY_SECRET,
+            cloud_name=CLOUD_NAME),
+
+        print(result[0]['secure_url'])
+        img_url = result[0]['secure_url']
+    
+    
+        picture = img_url
+        the_post = crud.create_post(user_id, post, post_date_made, post_title, picture)
+
+    else:
+        the_post = crud.create_post(user_id, post, post_date_made, post_title)
     
     posts = crud.get_post(user_id, postId = the_post.post_id)
     thePost = {
@@ -233,6 +253,7 @@ def new_post():
         "profilePic": posts[0][0].profile_picture,
         "username": posts[0][0].username,
         "name": posts[0][0].name,
+        "picture": posts[0][1].picture,
     }
 
     return jsonify({"createdPost" : thePost})
@@ -269,7 +290,9 @@ def list_posts():
             'post': allPosts[i][1].post, 
             'postTitle' : allPosts[i][1].post_title, 
             'postId' : allPosts[i][1].post_id, 
-            'postDate': allPosts[i][1].post_date_made})
+            'postDate': allPosts[i][1].post_date_made,
+            'picture': allPosts[i][1].picture,
+            })
 
     return jsonify({"allPosts" : list_posts})
 
@@ -407,9 +430,7 @@ def get_profile():
 
 
         profileInformation = [userProfile, all_posts]
-    print('*********************************')
-    print(profileInformation)
-    print('*********************************')
+
     return jsonify({"Profile" : profileInformation})
 
 
@@ -452,38 +473,43 @@ def list_following():
     following = crud.get_following(user_id)
 
     allFollowing = []
-
+    followingList = []
     for person in following:
-        allFollowing.append({
+        followingList.append({
             "userId": person.user_id,
             "profilePic": person.profile_picture,
             "usersName": person.name,
             "username": person.username, 
         })
+    allFollowing.append(followingList)
+
+    count = crud.count_following(user_id)
+
+    print('*********************************')
+    allFollowing.append({"count": count})
     print(allFollowing)
+    print('*********************************')
+
     return jsonify({"everyoneFollowed" : allFollowing})
 
 
-@app.route('/user-following', methods=["POST"])
+@app.route('/user-following')
 def user_follows(): 
     user_id = crud.get_user_id(session['current_user'])
-    other_user_id = request.get_json("props.userId")
+    
     
     following = crud.get_following(user_id)
 
     allFollowing = []
 
     for person in following:
-        if person.user_id == other_user_id:
             allFollowing.append({
                 "userId": person.user_id,
                 "profilePic": person.profile_picture,
                 "usersName": person.name,
                 "username": person.username, 
             })
-    print('*********************************')
-    print(allFollowing)
-    print('*********************************')
+
     return jsonify({"everyoneFollowed" : allFollowing})
 
 
@@ -503,6 +529,7 @@ def get_post():
             "postTitle": posts[i][1].post_title,
             "post": posts[i][1].post,
             "postDate": posts[i][1].post_date_made,
+            "picture": posts[i][1].picture,
         })
     return jsonify({"allPosts" : postInformation})
 

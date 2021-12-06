@@ -18,7 +18,19 @@ body{
     font-weight: bold;
 }
 
+.update {
+    transition-duration: 0.4s;
+    width: 25%;
+    height: 2em;
+    margin: 0.5em auto;
+    border-radius: 100px;
+    background-color:  #F0FFFF;
+    font-weight: bold;
+}
 
+.update:hover {
+    background-color: #5F9EA0;
+}
 img.front {
     width: 100%
 }
@@ -174,4 +186,19 @@ body
 
 .amountChange:hover {
     text-decoration: underline;
+}
+
+.image-upload > input {
+  visibility:hidden;
+  width:0;
+  height:0
+}
+
+.imageUpload {
+    width: 30px;
+    height: 30px;
+}
+
+.postPicture {
+    max-width:500px;
 }

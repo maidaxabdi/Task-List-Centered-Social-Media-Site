@@ -273,6 +273,7 @@ function Post(props) {
         <ReactBootstrap.Card.Text>
         <span className="text-md-left"> {props.post} </span>
         </ReactBootstrap.Card.Text>
+        <ReactBootstrap.Card.Img className="postPicture" src={props.picture}/> 
         <ReactBootstrap.Card.Text>
         <span className="text-sm-left" className="mb-2 text-muted"  > {props.postDate} </span>
         </ReactBootstrap.Card.Text>
@@ -292,6 +293,7 @@ function UserPost(props) {
         <ReactBootstrap.Card.Text>
         <span className="text-md-left"> {props.post} </span>
         </ReactBootstrap.Card.Text>
+        <ReactBootstrap.Card.Img className="postPicture" src={props.picture}/> 
         <ReactBootstrap.Card.Text>
         <span className="mb-2 text-muted"> {props.postDate} </span>
         <PostDelete postId={props.postId}
@@ -306,47 +308,78 @@ function UserPost(props) {
 function AddPosts(props) {
     const [post, setPost] = React.useState("")
     const [postTitle, setPostTitle] = React.useState("")
-    
+    const [picture, setPicture] = React.useState(null)
+    const [previewSource, setPreviewSource] = React.useState('');
+
     function createPost() {
+        formData.append('postTitle', postTitle)
+        formData.append('post', post)
+        formData.append('my-file', picture)
         fetch('/new-post', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({postTitle, post}),
+            body: formData,
         }).then(response => {
             response.json().then(jsonResponse => {
             const {createdPost} = jsonResponse;
-            const {postId, post: postText, postTitle: postTitleText, profilePic: profilePicIMG, username: usernameText, name: nameText} = createdPost;
-            props.addPost(postId, postText, postTitleText, profilePicIMG, usernameText, nameText)
+            const {postId, post: postText, postTitle: postTitleText, profilePic: profilePicIMG, username: usernameText, name: nameText, picture: pictureImg} = createdPost;
+            props.addPost(postId, postText, postTitleText, profilePicIMG, usernameText, nameText, pictureImg)
             setPost("")
             setPostTitle("")
+            setPreviewSource('')
             });
         });
   }
+
+    const formData = new FormData();
+    const reader = new FileReader()
+    
+    const whenPicChanges = (e) => {
+        setPicture(e.target.files[0]);
+        const file = e.target.files[0];
+        console.log(file)
+        previewFile(file);
+    }
+
+    const previewFile = file => {
+        reader.readAsDataURL(file);
+        reader.onloadend = () => {
+        setPreviewSource(reader.result)
+        }
+    }
 
     return (
         
         <ReactBootstrap.Card style={{ width: '40rem' }}>
         <ReactBootstrap.Card.Body>
-        <div>
         <input
-            class="form-control form-control-lg" 
+            className="form-control form-control-lg" 
             value={postTitle}
             placeholder="Post Title"
             onChange={(event) => setPostTitle(event.target.value)}
             id="postTitleInput"
         ></input>
-        </div>
-        <div>
        <textarea
-            class="form-control form-control-lg" 
+            className="form-control form-control-lg" 
             value={post}
             placeholder="What's happening?"
             onChange={(event) => setPost(event.target.value)}
             id="postInput"
         ></textarea>
+        <div className='image-upload'>
+        <label for="file-input">
+        <img className='imageUpload' src="https://res.cloudinary.com/check/image/upload/v1638756544/3007260_pg76d8.png" style={{"pointerEvents": "none"}} />
+        </label>
+        <input
+            id='file-input'
+            type="file"
+            accept="image/*"
+            name="my-file"
+            onChange={(e) => whenPicChanges(e)}
+            ></input>
         </div>
+            {previewSource && (
+            <img src={previewSource} alt="chosen" style={{height: '100px'}}/>
+            )}
         </ReactBootstrap.Card.Body>
         <button className="checkButton" onClick={createPost}> Check </button> 
         </ReactBootstrap.Card>
@@ -453,6 +486,7 @@ function UserProfile(props) {
             postTitle={currentPost.postTitle}
             post={currentPost.post}
             postDate={currentPost.postDate}
+            picture={currentPost.picture}
             postId={currentPost.postId}
             deletePost={deletePost} 
             />
@@ -557,12 +591,18 @@ function EditProfile(props) {
         <ReactBootstrap.Modal.Body>
         <div>
         <p> Profile Pic </p>
+        <div className='image-upload'>
+        <label for="file-input">
+        <img className='imageUpload' src="https://res.cloudinary.com/check/image/upload/v1638756544/3007260_pg76d8.png" style={{"pointerEvents": "none"}} />
+        </label>
         <input
+            id='file-input'
             type="file"
             accept="image/*"
             name="my-file"
             onChange={(e) => whenPicChanges(e)}
         ></input>
+        </div>
         {previewSource && (
             <img src={previewSource} alt="chosen" style={{height: '75px'}}/>
             )}
@@ -807,64 +847,54 @@ function User(props) {
     const [followed, setFollowed] = React.useState([])
     const [showProfile, setShowProfile] = React.useState(false)
     const [notCurrentUser, setNotCurrentUser] = React.useState(true)
-
+  
     const following = (userFollowed) => {
+        setIsFollowing(true);
         setAdded(userFollowed)
     }
-
+  
     const allFollowing = (userFollowed) => {
         setFollowed(userFollowed)
     }
     const [seePosts, setSeePosts] = React.useState([])
     const [seeProfile, setSeeProfile] = React.useState([])
-
+  
     const checkProfile = (profileResponse) => {
     setSeeProfile(profileResponse);
     }
-    
+   
     const checkPosts = (postResponse) => {
         setSeePosts(postResponse);
     }
-
-    const [isFollowing, setIsFollowing] = React.useState(true)
-
-    
-    function UserFollowing() {
-        if (props.user == props.userId) {
-        fetch('/user-following', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-              },
-              body: props.userId,
-        }).then(response => {
-            response.json().then(jsonResponse => {
-            const {everyoneFollowed} = jsonResponse;   
-            console.log(everyoneFollowed)
-            userFollows(everyoneFollowed)
-        });
-    }); 
-    }
-}
-
-    const userFollows = (everyoneFollowed) => {
-        if (everyoneFollowed.length == 0) {
-            setIsFollowing(false);
-            console.log(isFollowing);
-        }
-    }
-
+  
     React.useEffect(() => {
         if (props.user == props.userId) {
             setNotCurrentUser(false)
             console.log(props.user)
             console.log(props.userId)
         }
-        else {
-            UserFollowing()
-        }
     }, []);
-
+    const [isFollowing, setIsFollowing] = React.useState(false)
+    const [userFollowing, setUserFollowing] = React.useState([])
+  
+    React.useEffect(() =>{
+        let unmounted = false;
+        if (!unmounted) {
+        fetch('/user-following')
+            .then(response => response.json())
+            .then(result => setUserFollowing(result.everyoneFollowed));
+        }
+        return () => {
+            unmounted=true
+            for (const person of userFollowing) {
+                if (person.userId == props.userId) {
+                    setIsFollowing(true);
+                }
+            }
+        }  
+    }, []);
+  
+  
     return (
         <div>
         <div className="user">
@@ -872,10 +902,10 @@ function User(props) {
             profilePic={props.profilePic}
             name={props.name}
             username={props.username}
-            bio={props.bio} 
-            checkPosts={checkPosts} 
-            checkProfile={checkProfile} 
-            seePosts={seePosts} 
+            bio={props.bio}
+            checkPosts={checkPosts}
+            checkProfile={checkProfile}
+            seePosts={seePosts}
             seeProfile={seeProfile}
             userId={props.userId}
             allFollowing={allFollowing}
@@ -883,21 +913,21 @@ function User(props) {
             notCurrentUser={notCurrentUser}
             following={following}
             userId={props.userId}
-            isFollowing={isFollowing}
             user={props.user}
             switchUserProfile={props.switchUserProfile}
             newUser={props.newUser}
+            isFollowing={isFollowing}
             />
         </div>
         </div>
     );
-} 
-
-function UserDetails(props) {
+ }
+  
+ function UserDetails(props) {
     const isMountRef = React.useRef(false);
     const [showResults, setShowResults] = React.useState(props.showResults);
     const [showNewResults, setShowNewResults] = React.useState(false);
-
+  
     const newUser = (sent) => {
         if (sent == true) {
             UserDetail()
@@ -906,7 +936,7 @@ function UserDetails(props) {
     }
     const [thePosts, setThePosts] = React.useState([])
     const [theProfile, setTheProfile] = React.useState([])
-
+  
     const UserDetail = () =>  {
         fetch('/user-details', {
             method: 'POST',
@@ -925,26 +955,26 @@ function UserDetails(props) {
             });
             });
     }
-
+  
     React.useEffect(() => {
         isMountRef.current = true}, []);
-
+  
     React.useEffect(() => {
         if (isMountRef && theProfile && thePosts) {
             console.log('here')
             UserDetail()
         }}, []);
-
+  
     console.log(thePosts)
     console.log(theProfile)
     return (
         <React.Fragment>
-        { showResults ? 
+        { showResults ?
             <span>
         {theProfile.map(result => {
             return (
             <span key={result.userId}>
-                <User 
+                <User
                 username={result.username}
                 userId={result.userId}
                 profilePic={result.profilePic}
@@ -958,24 +988,25 @@ function UserDetails(props) {
         {thePosts.map(result => {
             return (
             <span key={result.postId}>
-                 <Post 
+                 <Post
                 name={result.name}
                 profilePic={result.profilePic}
                 username={result.username}
                 postTitle={result.postTitle}
                 post={result.post}
                 postDate={result.postDate}
+                picture={result.picture}
                 />
             </span>
             )
             })}
         </span>
-        : 
+        :
             <span>
         {theProfile.map(result => {
             return (
             <span key={result.userId}>
-                <User 
+                <User
                 username={result.username}
                 userId={result.userId}
                 profilePic={result.profilePic}
@@ -989,7 +1020,7 @@ function UserDetails(props) {
         {thePosts.map(result => {
             return (
             <span key={result.postId}>
-                 <Post 
+                 <Post
                 name={result.name}
                 profilePic={result.profilePic}
                 username={result.username}
@@ -1004,9 +1035,8 @@ function UserDetails(props) {
         </React.Fragment>
     );
     }
-
-function FollowUser(props) {
-    const [change, setChange] = React.useState('')
+  
+ function FollowUser(props) {
     function followThem() {
         fetch('/follow-user', {
             method: 'POST',
@@ -1016,35 +1046,43 @@ function FollowUser(props) {
               body: props.userId,
         }).then(response => {
             response.json().then(jsonResponse => {
-            const {userFollowed} = jsonResponse;   
+            const {userFollowed} = jsonResponse;  
             console.log(userFollowed)
-            props.following(userFollowed) 
-            setChange(true)
+            props.following(userFollowed)
         });
-    }); 
+    });
     }
-
-    React.useEffect(() => {
-
-    }, [change]);
-
+  
     return (
         <button className='profile' value={props.userId} onClick={followThem}>
         {props.isFollowing ? 'Following' : 'Follow'}
         </button>
     );
-}
-
-
-function RetrieveFollowed(props) {
+ }
+  
+  
+ function RetrieveFollowed(props) {
     const isMountRef = React.useRef(false);
     const [userResult, setUserResult] = React.useState('')
-
+  
     const [showProfile, setShowProfile] = React.useState(false)
     const [showResults, setShowResults] = React.useState(false)
-
+  
+   React.useEffect(() => {
+    Following();
+    }, []);
+  
+    const [count, setCount] = React.useState('')
+    const setTheCount = (count) => {
+        let unmounted = false;
+        if (!unmounted) {
+        setCount(count)
+        }
+        return () => { unmounted = true}
+    }
+  
     const showTheProfile = (userId) => {
-         setShowResults(false); 
+         setShowResults(false);
          if (props.switchUserProfile) {
          props.switchUserProfile(userId);
          }
@@ -1054,9 +1092,9 @@ function RetrieveFollowed(props) {
          }
     }
     const showTheResults = () => {
-        setShowProfile(false); setShowResults(true) 
+        setShowProfile(false); setShowResults(true)
    }
-
+  
     function Following() {
         fetch('/following', {
             method: 'POST',
@@ -1066,27 +1104,29 @@ function RetrieveFollowed(props) {
               body: props.userId,
         }).then(response => {
             response.json().then(jsonResponse => {
-            const {everyoneFollowed} = jsonResponse;   
+            const {everyoneFollowed} = jsonResponse;  
             console.log(everyoneFollowed)
-            props.allFollowing(everyoneFollowed) 
+            props.allFollowing(everyoneFollowed[0])
+            const {count: countText} = everyoneFollowed[1]
+            setTheCount(countText)
         });
-    }); 
+    });
     }
     // React.useEffect(() => {
     //     isMountRef.current = true;
     //     }, []);
-
+  
     // React.useEffect(() => {
     //     if (isMountRef) {
     //         showTheResults()
     //     }}, []);
-
+  
         console.log(showProfile)
         console.log(showResults)
-    
+       
     return (
         <React.Fragment>
-        <span className='followers' onClick={() => {showTheResults(); {Following()}}}> Following </span>
+        <span className='followers' onClick={() => {showTheResults(); {Following()}}}> {count} Following </span>
         { showResults ?
         <span>
         {props.followed.map(result => {
@@ -1104,13 +1144,13 @@ function RetrieveFollowed(props) {
             </span>
             )
             })}
-        </span> 
+        </span>
         : null }
-        { showProfile ? <UserDetails user={props.user} showResults={props.showResults} userResult={userResult} checkPosts={props.checkPosts} checkProfile={props.checkProfile}  seePosts={props.seePosts} seeProfile={props.seeProfile} /> : null} 
+        { showProfile ? <UserDetails user={props.user} showResults={props.showResults} userResult={userResult} checkPosts={props.checkPosts} checkProfile={props.checkProfile}  seePosts={props.seePosts} seeProfile={props.seeProfile} /> : null}
         </React.Fragment>
     );
-}
-
+ }
+ 
 //////////////////////////////////////////////////////// HOME /////////////////////////////////////////////////////////////
 
 function Home() {
@@ -1145,6 +1185,7 @@ function Home() {
                     profilePic={result.profilePic}
                     name={result.name}
                     postDate={result.postDate}
+                    picture={result.picture}
                 />
             </div>
             )
@@ -1303,8 +1344,8 @@ function TaskList() {
             })}
             </ReactBootstrap.Card>
             <button className='button' onClick={showRewardForum}>  Rewards </button>
-            { showRewards ? <ListRewards editReward={editReward} rewardList={listRewards} changedAmount={changedAmount}/> : null}
             { showCongrats ? <Congratulations onHide={() => setShowCongrats(false)} reward={reward} /> : null} 
+            { showRewards ? <ListRewards editReward={editReward} rewardList={listRewards} changedAmount={changedAmount}/> : null}
         </React.Fragment>
     );
 }
@@ -1319,14 +1360,11 @@ function Congratulations(props) {
         { setShow ?
         <ReactBootstrap.Alert show={props.showCongrats} variant="success">
           <ReactBootstrap.Alert.Heading>Congratulations!</ReactBootstrap.Alert.Heading>
-          <p>
-            Your hard earned reward: {props.reward}
-          </p>
-          <div className="d-flex justify-content-end">
-            <button onClick={props.onHide} variant="outline-success">
+            <div> Your hard earned reward: {props.reward}
+          <button className='update' onClick={props.onHide} variant="outline-success">
               Enjoy!
             </button>
-          </div>
+            </div>
         </ReactBootstrap.Alert>
         : null}
       </React.Fragment>

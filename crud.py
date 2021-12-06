@@ -366,10 +366,10 @@ def get_followers(user_id):
 ## RETURN COUNT OF FOLLOWING
 
 def count_following(user_id):
-    count_following = Follow.query.filter(Follow.user_id == user_id).count(Follow.follow_user_id).all()
+    user = User.query.filter_by(user_id = user_id).first()
+    count = len(user.follows)
 
-    return count_following
-
+    return count
 
 ## RETURN COUNT OF FOLLOWERS
 
