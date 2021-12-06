@@ -358,7 +358,7 @@ def get_following(user_id):
 ## RETURN LIST OF FOLLOWERS
 
 def get_followers(user_id):
-    followers = Follow.query.filter(Follow.follow_user_id == user_id).group_by(Follow.user_id).all()
+    followers = Follow.query.filter(Follow.follow_user_id == user_id).first()
     
     return followers
 
@@ -374,14 +374,19 @@ def count_following(user_id):
 ## RETURN COUNT OF FOLLOWERS
 
 def count_followers(user_id):
-    count_followers = Follow.query.filter(Follow.follow_user_id == user_id).count(Follow.user_id).all()
+    count_followers = Follow.query.filter(Follow.follow_user_id == user_id).first()
+    count = len(count_followers)
 
-    return count_followers
+    return count
 
 
 ## UNFOLLOW USER
+def unfollow(follow_user_id, user_id):
+    get_unfollowed = Follow.query.filter(Follow.follow_user_id == follow_user_id and user_id == user_id).delete()
 
+    db.session.commit()
 
+    return get_unfollowed
 
 
 ## SEARCH FOR USERS / POSTS / GROUPS

@@ -457,10 +457,7 @@ def follow_user():
     if follow_user_id != user_id and follow_user_id not in follow_id:
         followed = crud.follow_user(user_id, follow_user_id)
 
-        following.append({
-            "current_user_id": followed.user_id,
-            "following": followed.follow_user_id,
-            })
+    following.append({'follows': True})
     
     return jsonify({"userFollowed" : following})
 
@@ -493,24 +490,41 @@ def list_following():
     return jsonify({"everyoneFollowed" : allFollowing})
 
 
-@app.route('/user-following')
+@app.route('/user-following', methods=["POST"])
 def user_follows(): 
     user_id = crud.get_user_id(session['current_user'])
-    
+    follow_user_id = request.get_json("props.userId")
     
     following = crud.get_following(user_id)
 
     allFollowing = []
 
     for person in following:
-            allFollowing.append({
-                "userId": person.user_id,
-                "profilePic": person.profile_picture,
-                "usersName": person.name,
-                "username": person.username, 
-            })
+        if (person.user_id == follow_user_id):
+            allFollowing.append({'follows': True})
+    
+    if allFollowing == []:
+        allFollowing.append({'follows': False})
 
-    return jsonify({"everyoneFollowed" : allFollowing})
+
+    print('*********************************')
+    print(allFollowing)
+    print('*********************************')
+
+    return jsonify({"personFollowed" : allFollowing})
+
+
+@app.route('/user-unfollowed', methods=["POST"])
+def user_unfollowed():
+    user_id = crud.get_user_id(session['current_user'])
+    follow_user_id = request.get_json("props.userId")
+
+    unfollowed = crud.unfollow(follow_user_id, user_id)
+
+    personUnfollowed = ({'follows': False})
+
+
+    return jsonify({"unfollowed" : personUnfollowed})
 
 
 @app.route('/home-posts')

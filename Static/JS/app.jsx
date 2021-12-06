@@ -790,7 +790,9 @@ function UserProfileHeader (props) {
                 following={props.following}
                 userId={props.userId}
                 isFollowing={props.isFollowing}
-                user={props.user}/>
+                user={props.user}
+                unfollowed={props.unfollowed}
+                userFollowing={props.userFollowing}/>
             </ReactBootstrap.Card.Text> 
             <ReactBootstrap.Card.Text> {props.bio} </ReactBootstrap.Card.Text> 
             <ReactBootstrap.Card.Text> 
@@ -847,12 +849,7 @@ function User(props) {
     const [followed, setFollowed] = React.useState([])
     const [showProfile, setShowProfile] = React.useState(false)
     const [notCurrentUser, setNotCurrentUser] = React.useState(true)
-  
-    const following = (userFollowed) => {
-        setIsFollowing(true);
-        setAdded(userFollowed)
-    }
-  
+
     const allFollowing = (userFollowed) => {
         setFollowed(userFollowed)
     }
@@ -874,26 +871,14 @@ function User(props) {
             console.log(props.userId)
         }
     }, []);
+
     const [isFollowing, setIsFollowing] = React.useState(false)
     const [userFollowing, setUserFollowing] = React.useState([])
-  
-    React.useEffect(() =>{
-        let unmounted = false;
-        if (!unmounted) {
-        fetch('/user-following')
-            .then(response => response.json())
-            .then(result => setUserFollowing(result.everyoneFollowed));
-        }
-        return () => {
-            unmounted=true
-            for (const person of userFollowing) {
-                if (person.userId == props.userId) {
-                    setIsFollowing(true);
-                }
-            }
-        }  
-    }, []);
-  
+
+    const following = (userFollowed) => {
+        setIsFollowing(true);
+        setAdded(userFollowed)
+    }
   
     return (
         <div>
@@ -911,12 +896,12 @@ function User(props) {
             allFollowing={allFollowing}
             followed={followed}
             notCurrentUser={notCurrentUser}
-            following={following}
             userId={props.userId}
             user={props.user}
             switchUserProfile={props.switchUserProfile}
             newUser={props.newUser}
-            isFollowing={isFollowing}
+            following={following}
+            userFollowing={userFollowing}
             />
         </div>
         </div>
@@ -936,7 +921,7 @@ function User(props) {
     }
     const [thePosts, setThePosts] = React.useState([])
     const [theProfile, setTheProfile] = React.useState([])
-  
+
     const UserDetail = () =>  {
         fetch('/user-details', {
             method: 'POST',
@@ -955,7 +940,8 @@ function User(props) {
             });
             });
     }
-  
+
+ 
     React.useEffect(() => {
         isMountRef.current = true}, []);
   
@@ -1037,6 +1023,12 @@ function User(props) {
     }
   
  function FollowUser(props) {
+    const [following, setFollowing] = React.useState(false)
+
+    React.useEffect(() => {
+        isFollowing()
+    },  []);
+
     function followThem() {
         fetch('/follow-user', {
             method: 'POST',
@@ -1047,15 +1039,67 @@ function User(props) {
         }).then(response => {
             response.json().then(jsonResponse => {
             const {userFollowed} = jsonResponse;  
+            const {follows: followsText} = userFollowed[0];
             console.log(userFollowed)
-            props.following(userFollowed)
+            setFollow(followsText)
         });
     });
     }
-  
+    
+    function Unfollow() {
+        fetch('/user-unfollowed', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+              },
+              body: props.userId,
+        }).then(response => {
+            response.json().then(jsonResponse => {
+            const {personUnfollowed} = jsonResponse;  
+            const {follows: followsText} = personUnfollowed[0];
+            setFollow(followsText)
+        });
+    });
+    }
+
+    const handleClick = () => {
+        if (following) {
+            Unfollow()
+        }
+        else {
+            followThem()
+        }
+    }
+
+    function isFollowing() {
+        fetch('/user-following', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+              },
+              body: props.userId,
+        }).then(response => {
+            response.json().then(jsonResponse => {
+            console.log(jsonResponse)
+            const {personFollowed} = jsonResponse;  
+            const {follows: followsText} = personFollowed[0];
+            console.log(personFollowed)
+            setFollow(followsText)
+        });
+    });
+    }
+
+    const setFollow = (followsText) => {
+        console.log('***************************')
+        console.log(followsText)
+        setFollowing(followsText)
+        console.log(following)
+    }
+
+    console.log(following)
     return (
-        <button className='profile' value={props.userId} onClick={followThem}>
-        {props.isFollowing ? 'Following' : 'Follow'}
+        <button className='profile' value={props.userId} onClick={handleClick}>
+        {following ? 'Following' : 'Follow'}
         </button>
     );
  }
