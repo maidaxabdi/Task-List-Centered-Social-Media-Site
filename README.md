@@ -16,7 +16,7 @@ Check is an app that helps its users find the middle ground between productivity
 * Edit profile
 * Search up posts 
 * Search up users and can be redirected to their profiles
-* Follow other users
+* Follow/Unfollow other users
 * See following count
 * See each users following list 
 * Can click on a user from that following list and be redirected to their profile page
