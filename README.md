@@ -1,10 +1,10 @@
-## Project Summary
+# CHECK
 Check is an app that helps its users find the middle ground between productivity and reward. When a user logs on to Check they are given a personal task list that stays with them throughout the duration of their account. Users always have access to this task list that they can then add on to and mark tasks complete, regardless of where the user navigates to on the app. While the task list aims to promote productivity, Check's social media like nature coupled with its reward system allows users to be rewarded for the time they spend on the app.
 
 ## Tech Stack
-<p> Frontend: React, AJAX, Bootstrap, CSS, HTML </p>
-<p> Backend: Flask, Python, PostgreSQL, SQLAlchemy </p>
-<p> APIs: Cloudinary </p>
+* Frontend: React, AJAX, Bootstrap, CSS, HTML 
+* Backend: Flask, Python, PostgreSQL, SQLAlchemy 
+* APIs: Cloudinary 
 
 ## Features
 * Register an account or login 
@@ -19,7 +19,7 @@ Check is an app that helps its users find the middle ground between productivity
 * Follow other users
 * See following count
 * See each users following list 
-* Can click on a user from that list and be redirected to their profile page
+* Can click on a user from that following list and be redirected to their profile page
 * See the posts of all followed by most recent
 
 ## Future
