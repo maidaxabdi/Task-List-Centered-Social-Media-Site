@@ -4,7 +4,7 @@ Check is an app that helps its users find the middle ground between productivity
 ## Video Demo
 <a href="https://youtu.be/RSL7NiNmC4I
 " target="_blank"><img src="https://img.youtube.com/vi/RSL7NiNmC4I/hqdefault.jpg" 
-alt="CHECK Hackbright Demo 2021" width="240" height="180" /></a>
+alt="CHECK Hackbright Demo 2021" width="480" height="360" /></a>
 
 ## Tech Stack
 * Frontend: React, AJAX, Bootstrap, CSS, HTML 
